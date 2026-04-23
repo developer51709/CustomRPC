@@ -248,6 +248,7 @@ class RpcService : Service(), GatewayStateListener {
                 activityType = sharedPref.getInt("activityType", 0),
                 streamUrl = sharedPref.getString("streamUrl", "") ?: "",
                 partySize = sharedPref.getString("partySize", "")?.toIntOrNull(),
+                partyId = sharedPref.getString("partyId", "")?.takeIf { it.isNotBlank() },
                 partyMax = sharedPref.getString("partyMax", "")?.toIntOrNull(),
                 button1Label = sharedPref.getString("btn1Text", "") ?: "",
                 button1Url = sharedPref.getString("btn1Url", "") ?: "",

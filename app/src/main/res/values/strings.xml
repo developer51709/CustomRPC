@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Custom RPC</string>
     <string name="app_subtitle">Discord Rich Presence Client</string>
-    
+
     <!-- Login View -->
     <string name="title_login">CustomRPC</string>
     <string name="hint_token">User Token</string>
@@ -9,75 +9,110 @@
     <string name="btn_login">Login</string>
     <string name="btn_token_guide">How to get Token?</string>
     <string name="msg_enter_token">Please enter a token</string>
-    <string name="msg_token_saved">Token Retrieved &amp; Saved!</string>
-    <string name="msg_sniffing">Sniffing \'Authorization\' header...</string>
-    
+    <string name="msg_token_saved">Token retrieved &amp; saved!</string>
+    <string name="msg_sniffing">Sniffing \'Authorization\' header…</string>
+
     <!-- Dashboard View -->
     <string name="status_label">STATUS</string>
     <string name="status_offline">OFFLINE</string>
     <string name="status_connecting">CONNECTING</string>
     <string name="status_online">ONLINE</string>
-    <string name="desc_service_idle">Service Idle</string>
+    <string name="desc_service_idle">Service idle</string>
     <string name="btn_start">START</string>
     <string name="btn_stop">STOP</string>
-    <string name="btn_kill_service">Kill Service</string>
-    <string name="btn_configure">Configure Presence</string>
-    
+    <string name="btn_kill_service">Kill service</string>
+    <string name="btn_configure">Configure presence</string>
+
     <!-- Settings View -->
     <string name="title_configuration">Configuration</string>
     <string name="hint_app_id">Application ID</string>
-    <string name="hint_app_name">Activity Name (Custom App Name)</string>
-    <string name="label_activity_type">Activity Type</string>
+    <string name="hint_app_name">Activity name (custom app name)</string>
+    <string name="label_activity_type">Activity type</string>
     <string name="hint_stream_url">Stream URL (Twitch / YouTube)</string>
-    <string name="label_user_status">User Status</string>
-    <string name="hint_details">Details (Top Line)</string>
-    <string name="hint_state">State (Bottom Line)</string>
-    <string name="hint_party_size">Party Size</string>
-    <string name="hint_party_max">Party Max</string>
-    
+    <string name="label_user_status">User status</string>
+    <string name="hint_details">Details (top line)</string>
+    <string name="hint_state">State (bottom line)</string>
+    <string name="hint_party_size">Party size</string>
+    <string name="hint_party_max">Party max</string>
+    <string name="hint_party_id">Party ID (optional, leave blank to auto-generate)</string>
+
     <string name="label_timestamps">Timestamps</string>
     <string name="btn_ts_start">Start</string>
     <string name="btn_ts_end">End</string>
     <string name="ts_none">None</string>
-    
-    <string name="label_large_image">Large Image</string>
-    <string name="label_small_image">Small Image</string>
+
+    <string name="label_large_image">Large image</string>
+    <string name="label_small_image">Small image</string>
     <string name="hint_image_key">Key</string>
     <string name="hint_image_text">Tooltip</string>
-    
+
     <string name="label_btn1">Button 1</string>
     <string name="label_btn2">Button 2</string>
     <string name="hint_btn_label">Label</string>
     <string name="hint_btn_url">URL</string>
-    
-    <string name="btn_save_apply">Save &amp; Apply Details</string>
-    <string name="btn_back_dashboard">Back to Dashboard</string>
-    
-    <string name="msg_rpc_updated">RPC Updated!</string>
-    <string name="msg_fetching_assets">Fetching assets...</string>
+
+    <string name="btn_save_apply">Save &amp; apply</string>
+    <string name="btn_back_dashboard">Back to dashboard</string>
+
+    <string name="msg_rpc_updated">RPC updated!</string>
+    <string name="msg_fetching_assets">Fetching assets…</string>
     <string name="msg_no_app_id">Please enter Application ID first</string>
     <string name="msg_no_assets_found">No assets found for this App ID</string>
-    <string name="title_select_image">Select Image Key</string>
-    
+    <string name="title_select_image">Select image key</string>
+
+    <!-- Section headers -->
+    <string name="section_identity">Identity</string>
+    <string name="section_activity">Activity</string>
+    <string name="section_party">Party &amp; timing</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="section_buttons">Buttons</string>
+    <string name="section_advanced">Advanced</string>
+    <string name="section_preview">Live preview</string>
+
+    <!-- Live preview defaults -->
+    <string name="preview_default_name">Custom App</string>
+    <string name="preview_default_details">Configure your presence below</string>
+    <string name="preview_default_state">Then tap Save &amp; apply</string>
+    <string name="preview_header_playing">PLAYING A GAME</string>
+    <string name="preview_header_streaming">STREAMING</string>
+    <string name="preview_header_listening">LISTENING TO</string>
+    <string name="preview_header_watching">WATCHING</string>
+    <string name="preview_header_custom">CUSTOM STATUS</string>
+    <string name="preview_header_competing">COMPETING IN</string>
+
+    <!-- Advanced actions -->
+    <string name="btn_export_settings">Export</string>
+    <string name="btn_import_settings">Import</string>
+    <string name="btn_reset_settings">Reset</string>
+    <string name="msg_settings_exported">Settings copied to clipboard as JSON</string>
+    <string name="msg_settings_imported">Settings imported from clipboard</string>
+    <string name="msg_settings_reset">All settings reset to defaults</string>
+    <string name="msg_clipboard_empty">Clipboard is empty</string>
+    <string name="msg_invalid_json">Clipboard does not contain valid CustomRPC settings</string>
+    <string name="dialog_reset_title">Reset all settings?</string>
+    <string name="dialog_reset_msg">This will clear every field on this page. Your saved Discord token will not be removed.</string>
+    <string name="btn_yes">Yes, reset</string>
+    <string name="btn_no">Cancel</string>
+
     <!-- About View -->
-    <string name="about_version">Version 1.0 (Codename: Archangel)</string>
+    <string name="about_version">Version 1.1 (Codename: Archangel)</string>
     <string name="about_dev">Developed by Khoirul Aksara</string>
-    <string name="btn_github">GitHub Repository</string>
+    <string name="btn_github">GitHub repository</string>
     <string name="btn_email">Contact / Email</string>
-    <string name="btn_donate">Donate (Traktir Kopi)</string>
-    <string name="about_desc">Keep your Discord Presence Alive.\nSimple, Lightweight, Persistent.</string>
-    <string name="btn_back">Kembali</string>
-    
+    <string name="btn_donate">Donate (Buy me a coffee)</string>
+    <string name="about_desc">Keep your Discord presence alive.\nSimple, lightweight, persistent.</string>
+    <string name="btn_back">Back</string>
+
     <!-- Token Guide Dialog -->
-    <string name="dialog_guide_title">Cara Dapat Token</string>
-    <string name="dialog_guide_msg">1. Buka Discord Web/PC.\n2. Ctrl+Shift+I -> Network.\n3. Ketik \'/api/\' filter.\n4. Kirim chat.\n5. Copy \'authorization\' header.</string>
-    <string name="btn_open_login">Buka Login</string>
-    <string name="btn_close">Tutup</string>
-    
+    <string name="dialog_guide_title">How to get your token</string>
+    <string name="dialog_guide_msg">1. Open Discord on the web or desktop.\n2. Press Ctrl+Shift+I to open Developer Tools, then go to the Network tab.\n3. Type \'/api/\' into the filter box.\n4. Send any chat message.\n5. Click a request and copy the value of the \'authorization\' header.</string>
+    <string name="btn_open_login">Open login</string>
+    <string name="btn_close">Close</string>
+
     <!-- Service / Notifications -->
-    <string name="notif_channel_name">Discord RPC Service Channel</string>
-    <string name="notif_title_active">Discord RPC Active</string>
-    <string name="notif_desc_background">%s aktif dibelakang layar</string>
-    <string name="msg_service_started">RPC Service Started</string>
-    <string name="msg_service_killed">Service killed unexpectedly! Attempting restart...</string>
+    <string name="notif_channel_name">Discord RPC service channel</string>
+    <string name="notif_title_active">Discord RPC active</string>
+    <string name="notif_desc_background">%s is running in the background</string>
+    <string name="msg_service_started">RPC service started</string>
+    <string name="msg_service_killed">Service stopped unexpectedly! Attempting restart…</string>
 </resources>

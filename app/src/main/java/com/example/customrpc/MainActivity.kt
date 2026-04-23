@@ -44,6 +44,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusSpinner: Spinner
     private lateinit var streamUrlEditText: EditText
     private lateinit var streamUrlLayout: View
+    private lateinit var partyIdEditText: EditText
+
+    // Live preview elements
+    private lateinit var previewHeader: TextView
+    private lateinit var previewName: TextView
+    private lateinit var previewDetails: TextView
+    private lateinit var previewState: TextView
+
+    // Advanced action buttons
+    private lateinit var btnResetSettings: Button
+    private lateinit var btnExportSettings: Button
+    private lateinit var btnImportSettings: Button
 
 
     private lateinit var detailsEditText: EditText
@@ -380,6 +392,16 @@ class MainActivity : AppCompatActivity() {
         statusSpinner = findViewById(R.id.status_spinner)
         streamUrlEditText = findViewById(R.id.stream_url_edit_text)
         streamUrlLayout = findViewById(R.id.lay_stream_url)
+        partyIdEditText = findViewById(R.id.party_id_edit_text)
+
+        previewHeader = findViewById(R.id.preview_header)
+        previewName = findViewById(R.id.preview_name)
+        previewDetails = findViewById(R.id.preview_details)
+        previewState = findViewById(R.id.preview_state)
+
+        btnResetSettings = findViewById(R.id.btn_reset_settings)
+        btnExportSettings = findViewById(R.id.btn_export_settings)
+        btnImportSettings = findViewById(R.id.btn_import_settings)
         detailsEditText = findViewById(R.id.details_edit_text)
         stateEditText = findViewById(R.id.state_edit_text)
         partySizeEditText = findViewById(R.id.party_size_edit_text)
@@ -421,13 +443,8 @@ class MainActivity : AppCompatActivity() {
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         activityTypeSpinner.adapter = typeAdapter
 
-        // Show the stream URL field only when "Streaming" (position 1) is selected
-        activityTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                streamUrlLayout.visibility = if (position == 1) View.VISIBLE else View.GONE
-            }
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
+        // Listener for activityTypeSpinner is registered later in bindSettingsViews so it
+        // can also drive the live preview card.
 
         val statusOptions = arrayOf("Online", "Idle", "Do Not Disturb", "Invisible")
         val statusAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statusOptions)
@@ -460,8 +477,178 @@ class MainActivity : AppCompatActivity() {
 
         btnCancelConfig.setOnClickListener {
             // Discard changes? Or just go back. For now just go back (reloading settings implies discard)
-            loadSettings() 
+            loadSettings()
             showDashboard()
+        }
+
+        // Live preview wiring
+        val previewWatcher = object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) { updateLivePreview() }
+        }
+        appNameEditText.addTextChangedListener(previewWatcher)
+        detailsEditText.addTextChangedListener(previewWatcher)
+        stateEditText.addTextChangedListener(previewWatcher)
+        activityTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                streamUrlLayout.visibility = if (position == 1) View.VISIBLE else View.GONE
+                updateLivePreview()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        btnResetSettings.setOnClickListener { confirmAndResetSettings() }
+        btnExportSettings.setOnClickListener { exportSettingsToClipboard() }
+        btnImportSettings.setOnClickListener { importSettingsFromClipboard() }
+    }
+
+    private fun updateLivePreview() {
+        if (!::previewHeader.isInitialized) return
+        val name = appNameEditText.text.toString().trim()
+        val details = detailsEditText.text.toString().trim()
+        val state = stateEditText.text.toString().trim()
+        val pos = activityTypeSpinner.selectedItemPosition
+        val headerRes = when (pos) {
+            1 -> R.string.preview_header_streaming
+            2 -> R.string.preview_header_listening
+            3 -> R.string.preview_header_watching
+            4 -> R.string.preview_header_custom
+            5 -> R.string.preview_header_competing
+            else -> R.string.preview_header_playing
+        }
+        previewHeader.setText(headerRes)
+        previewName.text = name.ifBlank { getString(R.string.preview_default_name) }
+        if (details.isBlank()) {
+            previewDetails.text = getString(R.string.preview_default_details)
+        } else {
+            previewDetails.text = details
+        }
+        if (state.isBlank()) {
+            previewState.text = getString(R.string.preview_default_state)
+        } else {
+            previewState.text = state
+        }
+    }
+
+    private fun confirmAndResetSettings() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_reset_title))
+            .setMessage(getString(R.string.dialog_reset_msg))
+            .setPositiveButton(getString(R.string.btn_yes)) { _, _ ->
+                clearAllPresenceFields()
+                Toast.makeText(this, getString(R.string.msg_settings_reset), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(getString(R.string.btn_no), null)
+            .show()
+    }
+
+    private fun clearAllPresenceFields() {
+        appIdEditText.setText("")
+        appNameEditText.setText("")
+        activityTypeSpinner.setSelection(0)
+        statusSpinner.setSelection(0)
+        streamUrlEditText.setText("")
+        detailsEditText.setText("")
+        stateEditText.setText("")
+        partySizeEditText.setText("")
+        partyMaxEditText.setText("")
+        partyIdEditText.setText("")
+        largeImageKeyEditText.setText("")
+        largeImageKeyEditText.tag = ""
+        largeImageTextEditText.setText("")
+        smallImageKeyEditText.setText("")
+        smallImageKeyEditText.tag = ""
+        smallImageTextEditText.setText("")
+        btn1Text.setText("")
+        btn1Url.setText("")
+        btn2Text.setText("")
+        btn2Url.setText("")
+        timestampSpinner.setSelection(0)
+        customStartTime = null
+        customEndTime = null
+        tvStartTimeVal.text = getString(R.string.ts_none)
+        tvEndTimeVal.text = getString(R.string.ts_none)
+        saveSettings()
+        updateLivePreview()
+    }
+
+    private fun exportSettingsToClipboard() {
+        val json = org.json.JSONObject().apply {
+            put("_format", "customrpc/v1")
+            put("appId", appIdEditText.text.toString())
+            put("appName", appNameEditText.text.toString())
+            put("activityType", activityTypeSpinner.selectedItemPosition)
+            put("streamUrl", streamUrlEditText.text.toString())
+            put("userStatus", statusSpinner.selectedItemPosition)
+            put("details", detailsEditText.text.toString())
+            put("state", stateEditText.text.toString())
+            put("partySize", partySizeEditText.text.toString())
+            put("partyMax", partyMaxEditText.text.toString())
+            put("partyId", partyIdEditText.text.toString())
+            put("largeImageKey", (largeImageKeyEditText.tag as? String) ?: "")
+            put("largeImageName", largeImageKeyEditText.text.toString())
+            put("largeImageText", largeImageTextEditText.text.toString())
+            put("smallImageKey", (smallImageKeyEditText.tag as? String) ?: "")
+            put("smallImageName", smallImageKeyEditText.text.toString())
+            put("smallImageText", smallImageTextEditText.text.toString())
+            put("btn1Text", btn1Text.text.toString())
+            put("btn1Url", btn1Url.text.toString())
+            put("btn2Text", btn2Text.text.toString())
+            put("btn2Url", btn2Url.text.toString())
+            put("timestampMode", timestampSpinner.selectedItemPosition)
+            put("customStartTime", customStartTime ?: 0L)
+            put("customEndTime", customEndTime ?: 0L)
+        }.toString(2)
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("CustomRPC settings", json))
+        Toast.makeText(this, getString(R.string.msg_settings_exported), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun importSettingsFromClipboard() {
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = cm.primaryClip
+        val raw = clip?.getItemAt(0)?.coerceToText(this)?.toString()?.trim()
+        if (raw.isNullOrEmpty()) {
+            Toast.makeText(this, getString(R.string.msg_clipboard_empty), Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val j = org.json.JSONObject(raw)
+            if (j.optString("_format") != "customrpc/v1") {
+                Toast.makeText(this, getString(R.string.msg_invalid_json), Toast.LENGTH_SHORT).show()
+                return
+            }
+            appIdEditText.setText(j.optString("appId"))
+            appNameEditText.setText(j.optString("appName"))
+            activityTypeSpinner.setSelection(j.optInt("activityType", 0))
+            streamUrlEditText.setText(j.optString("streamUrl"))
+            statusSpinner.setSelection(j.optInt("userStatus", 0))
+            detailsEditText.setText(j.optString("details"))
+            stateEditText.setText(j.optString("state"))
+            partySizeEditText.setText(j.optString("partySize"))
+            partyMaxEditText.setText(j.optString("partyMax"))
+            partyIdEditText.setText(j.optString("partyId"))
+            largeImageKeyEditText.setText(j.optString("largeImageName"))
+            largeImageKeyEditText.tag = j.optString("largeImageKey")
+            largeImageTextEditText.setText(j.optString("largeImageText"))
+            smallImageKeyEditText.setText(j.optString("smallImageName"))
+            smallImageKeyEditText.tag = j.optString("smallImageKey")
+            smallImageTextEditText.setText(j.optString("smallImageText"))
+            btn1Text.setText(j.optString("btn1Text"))
+            btn1Url.setText(j.optString("btn1Url"))
+            btn2Text.setText(j.optString("btn2Text"))
+            btn2Url.setText(j.optString("btn2Url"))
+            timestampSpinner.setSelection(j.optInt("timestampMode", 0))
+            customStartTime = j.optLong("customStartTime", 0L).takeIf { it != 0L }
+            customEndTime = j.optLong("customEndTime", 0L).takeIf { it != 0L }
+            if (customStartTime != null) tvStartTimeVal.text = Date(customStartTime!!).toString()
+            if (customEndTime != null) tvEndTimeVal.text = Date(customEndTime!!).toString()
+            saveSettings()
+            updateLivePreview()
+            Toast.makeText(this, getString(R.string.msg_settings_imported), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, getString(R.string.msg_invalid_json), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -505,6 +692,7 @@ class MainActivity : AppCompatActivity() {
             streamUrl = streamUrlEditText.text.toString().trim(),
             partySize = partySizeEditText.text.toString().toIntOrNull(),
             partyMax = partyMaxEditText.text.toString().toIntOrNull(),
+            partyId = partyIdEditText.text.toString().trim().ifEmpty { null },
             button1Label = btn1Text.text.toString().trim(),
             button1Url = btn1Url.text.toString().trim(),
             button2Label = btn2Text.text.toString().trim(),
@@ -726,6 +914,7 @@ class MainActivity : AppCompatActivity() {
             putString("details", detailsEditText.text.toString())
             putString("state", stateEditText.text.toString())
             putString("partySize", partySizeEditText.text.toString())
+            putString("partyId", partyIdEditText.text.toString())
             putString("partyMax", partyMaxEditText.text.toString())
             putString("largeImageKey", (largeImageKeyEditText.tag as? String) ?: largeImageKeyEditText.text.toString())
             putString("largeImageName", largeImageKeyEditText.text.toString()) // Save what user sees
@@ -765,6 +954,7 @@ class MainActivity : AppCompatActivity() {
         detailsEditText.setText(sharedPref.getString("details", ""))
         stateEditText.setText(sharedPref.getString("state", ""))
         partySizeEditText.setText(sharedPref.getString("partySize", ""))
+        partyIdEditText.setText(sharedPref.getString("partyId", ""))
         partyMaxEditText.setText(sharedPref.getString("partyMax", ""))
         largeImageKeyEditText.setText(sharedPref.getString("largeImageName", "")) // Restore Name
         largeImageKeyEditText.setTag(sharedPref.getString("largeImageKey", ""))   // Restore ID

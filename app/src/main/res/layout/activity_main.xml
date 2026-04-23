@@ -214,7 +214,98 @@
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="16dp"/>
+
+            <!-- LIVE PREVIEW CARD -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_preview"
+                android:textColor="#B9BBBE"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp"/>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="#2F3136"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#202225"
+                app:strokeWidth="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_marginEnd="12dp">
+                        <ImageView
+                            android:id="@+id/preview_large_image"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:background="#202225"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_app_logo_new"/>
+                        <ImageView
+                            android:id="@+id/preview_small_image"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="#36393F"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"/>
+                    </FrameLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/preview_header"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preview_header_playing"
+                            android:textColor="#B9BBBE"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.05"/>
+                        <TextView
+                            android:id="@+id/preview_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preview_default_name"
+                            android:textColor="#FFFFFF"
+                            android:textStyle="bold"
+                            android:textSize="15sp"
+                            android:maxLines="1"
+                            android:ellipsize="end"/>
+                        <TextView
+                            android:id="@+id/preview_details"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preview_default_details"
+                            android:textColor="#DCDDDE"
+                            android:textSize="13sp"
+                            android:maxLines="1"
+                            android:ellipsize="end"/>
+                        <TextView
+                            android:id="@+id/preview_state"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preview_default_state"
+                            android:textColor="#DCDDDE"
+                            android:textSize="13sp"
+                            android:maxLines="1"
+                            android:ellipsize="end"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- APP ID -->
             <com.google.android.material.textfield.TextInputLayout
@@ -348,6 +439,20 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
+            <!-- PARTY ID (optional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_party_id"
+                android:layout_marginBottom="16dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/party_id_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- TIMESTAMP -->
             <TextView
                 android:layout_width="wrap_content"
@@ -398,7 +503,7 @@
             </LinearLayout>
 
             <!-- IMAGES -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" text="@string/label_large_image" android:textColor="#B9BBBE" android:layout_marginTop="16dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_large_image" android:textColor="#B9BBBE" android:layout_marginTop="16dp"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/lay_large_image_key"
@@ -430,7 +535,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" text="@string/label_small_image" android:textColor="#B9BBBE"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_small_image" android:textColor="#B9BBBE"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/lay_small_image_key"
@@ -463,7 +568,7 @@
             </LinearLayout>
 
             <!-- BUTTONS -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" text="@string/label_btn1" android:textColor="#B9BBBE"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn1" android:textColor="#B9BBBE"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
@@ -492,7 +597,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" text="@string/label_btn2" android:textColor="#B9BBBE"/>
+             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn2" android:textColor="#B9BBBE"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="24dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
@@ -522,6 +627,53 @@
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#4F545C" android:layout_marginBottom="16dp"/>
+
+            <!-- ADVANCED ACTIONS: Reset / Export / Import -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/section_advanced"
+                android:textColor="#B9BBBE"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_reset_settings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_reset_settings"
+                    android:textColor="#ED4245"
+                    app:strokeColor="#ED4245"
+                    android:layout_marginEnd="8dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_export_settings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_export_settings"
+                    android:textColor="#B9BBBE"
+                    app:strokeColor="#4F545C"
+                    android:layout_marginEnd="8dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_import_settings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_import_settings"
+                    android:textColor="#B9BBBE"
+                    app:strokeColor="#4F545C"/>
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_save_apply"

@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.customrpc"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -22,6 +22,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Intentionally no signingConfig here so that `assembleRelease`
+            // produces an UNSIGNED apk (`app-release-unsigned.apk`).
+            // The build workflow then signs a copy with apksigner using the
+            // release keystore to produce the SIGNED apk.
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

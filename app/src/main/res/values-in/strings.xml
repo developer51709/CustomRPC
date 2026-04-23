@@ -28,6 +28,7 @@
     <string name="hint_app_id">ID Aplikasi</string>
     <string name="hint_app_name">Nama Aktivitas (Nama App Custom)</string>
     <string name="label_activity_type">Tipe Aktivitas</string>
+    <string name="hint_stream_url">URL Stream (Twitch / YouTube)</string>
     <string name="label_user_status">Status Pengguna</string>
     <string name="hint_details">Detail (Baris Atas)</string>
     <string name="hint_state">Status (Baris Bawah)</string>

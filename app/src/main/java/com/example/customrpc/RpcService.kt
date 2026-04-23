@@ -246,6 +246,7 @@ class RpcService : Service(), GatewayStateListener {
                 smallImageKey = sharedPref.getString("smallImageKey", "") ?: "",
                 smallImageText = sharedPref.getString("smallImageText", "") ?: "",
                 activityType = sharedPref.getInt("activityType", 0),
+                streamUrl = sharedPref.getString("streamUrl", "") ?: "",
                 partySize = sharedPref.getString("partySize", "")?.toIntOrNull(),
                 partyMax = sharedPref.getString("partyMax", "")?.toIntOrNull(),
                 button1Label = sharedPref.getString("btn1Text", "") ?: "",

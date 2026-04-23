@@ -28,6 +28,7 @@
     <string name="hint_app_id">Application ID</string>
     <string name="hint_app_name">Activity Name (Custom App Name)</string>
     <string name="label_activity_type">Activity Type</string>
+    <string name="hint_stream_url">Stream URL (Twitch / YouTube)</string>
     <string name="label_user_status">User Status</string>
     <string name="hint_details">Details (Top Line)</string>
     <string name="hint_state">State (Bottom Line)</string>

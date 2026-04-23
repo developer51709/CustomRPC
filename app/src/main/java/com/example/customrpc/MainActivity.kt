@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appNameEditText: EditText
     private lateinit var activityTypeSpinner: Spinner
     private lateinit var statusSpinner: Spinner
+    private lateinit var streamUrlEditText: EditText
+    private lateinit var streamUrlLayout: View
 
 
     private lateinit var detailsEditText: EditText
@@ -376,6 +378,8 @@ class MainActivity : AppCompatActivity() {
         appNameEditText = findViewById(R.id.app_name_edit_text)
         activityTypeSpinner = findViewById(R.id.activity_type_spinner)
         statusSpinner = findViewById(R.id.status_spinner)
+        streamUrlEditText = findViewById(R.id.stream_url_edit_text)
+        streamUrlLayout = findViewById(R.id.lay_stream_url)
         detailsEditText = findViewById(R.id.details_edit_text)
         stateEditText = findViewById(R.id.state_edit_text)
         partySizeEditText = findViewById(R.id.party_size_edit_text)
@@ -416,6 +420,14 @@ class MainActivity : AppCompatActivity() {
         val typeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, types)
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         activityTypeSpinner.adapter = typeAdapter
+
+        // Show the stream URL field only when "Streaming" (position 1) is selected
+        activityTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                streamUrlLayout.visibility = if (position == 1) View.VISIBLE else View.GONE
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
 
         val statusOptions = arrayOf("Online", "Idle", "Do Not Disturb", "Invisible")
         val statusAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statusOptions)
@@ -490,6 +502,7 @@ class MainActivity : AppCompatActivity() {
             smallImageKey = (smallImageKeyEditText.tag as? String) ?: smallImageKeyEditText.text.toString().trim(),
             smallImageText = smallImageTextEditText.text.toString().trim(),
             activityType = typeInt,
+            streamUrl = streamUrlEditText.text.toString().trim(),
             partySize = partySizeEditText.text.toString().toIntOrNull(),
             partyMax = partyMaxEditText.text.toString().toIntOrNull(),
             button1Label = btn1Text.text.toString().trim(),
@@ -708,6 +721,7 @@ class MainActivity : AppCompatActivity() {
             putString("appId", appIdEditText.text.toString())
             putString("appName", appNameEditText.text.toString())
             putInt("activityType", activityTypeSpinner.selectedItemPosition)
+            putString("streamUrl", streamUrlEditText.text.toString())
             putInt("userStatus", statusSpinner.selectedItemPosition)
             putString("details", detailsEditText.text.toString())
             putString("state", stateEditText.text.toString())
@@ -739,6 +753,8 @@ class MainActivity : AppCompatActivity() {
         appNameEditText.setText(sharedPref.getString("appName", ""))
 
         activityTypeSpinner.setSelection(sharedPref.getInt("activityType", 0))
+        streamUrlEditText.setText(sharedPref.getString("streamUrl", ""))
+        streamUrlLayout.visibility = if (activityTypeSpinner.selectedItemPosition == 1) View.VISIBLE else View.GONE
         val statusSelection = try {
             sharedPref.getInt("userStatus", 0)
         } catch (e: ClassCastException) {

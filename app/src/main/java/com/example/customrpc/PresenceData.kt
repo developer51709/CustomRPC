@@ -11,7 +11,8 @@ data class PresenceData(
     val largeImageText: String,
     val smallImageKey: String,
     val smallImageText: String,
-    val activityType: Int, // 0=Playing, 2=Listening, 3=Watching, 5=Competing
+    val activityType: Int, // 0=Playing, 1=Streaming, 2=Listening, 3=Watching, 5=Competing
+    val streamUrl: String = "",
     val partySize: Int?,
     val partyMax: Int?,
     val button1Label: String,

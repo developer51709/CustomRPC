@@ -184,7 +184,13 @@ class DiscordGateway(
         val activity = JSONObject().apply {
             put("name", presence.name.ifBlank { "Custom App" }) 
             put("type", presence.activityType)
-            
+
+            // Streaming activity (type 1) requires a Twitch or YouTube URL.
+            // Discord ignores the field for other activity types, so only emit when streaming.
+            if (presence.activityType == 1 && presence.streamUrl.isNotBlank()) {
+                put("url", presence.streamUrl)
+            }
+
             if (presence.appId.isNotBlank()) put("application_id", presence.appId)
 
             if (presence.details.isNotBlank()) put("details", presence.details)

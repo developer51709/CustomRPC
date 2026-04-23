@@ -273,7 +273,22 @@
                 android:backgroundTint="#B9BBBE"
                 android:layout_marginBottom="16dp"/>
 
-
+            <!-- STREAM URL (visible only when Streaming activity type is selected) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/lay_stream_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_stream_url"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/stream_url_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"
+                    android:textColor="#FFFFFF"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- DETAILS & STATE -->
             <com.google.android.material.textfield.TextInputLayout

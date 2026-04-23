@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Custom RPC</string>
+    <string name="app_name">Archangel RPC</string>
     <string name="app_subtitle">Klien Discord Rich Presence</string>
 
     <!-- Login View -->
@@ -97,7 +97,12 @@
     <!-- About View -->
     <string name="about_version">Versi 1.1 (Codename: Archangel)</string>
     <string name="about_dev">Dikembangkan oleh Khoirul Aksara</string>
-    <string name="btn_github">GitHub Repository</string>
+    <string name="btn_github">Repositori GitHub</string>
+    <string name="credits_title">Kontributor</string>
+    <string name="credit_nyxen_name">! - Nyxen</string>
+    <string name="credit_nyxen_role">Kontributor</string>
+    <string name="btn_credit_github">Profil GitHub</string>
+    <string name="btn_credit_website">Situs Web</string>
     <string name="btn_email">Kontak / Email</string>
     <string name="btn_donate">Donasi (Traktir kopi)</string>
     <string name="about_desc">Jaga Discord presence tetap hidup.\nSimpel, ringan, persisten.</string>

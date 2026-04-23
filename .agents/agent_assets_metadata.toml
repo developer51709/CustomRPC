@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "izuq_bFOScbktQ_WaijpS"
+uri = "file://app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp"
+type = "image"
+title = "New Archangel launcher icon"

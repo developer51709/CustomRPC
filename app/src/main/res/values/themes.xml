@@ -1,8 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme: black + purple. -->
     <style name="Theme.CustomRPC" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">#202225</item> <!-- Discord Darker Header -->
+        <item name="colorPrimary">@color/archangel_purple</item>
+        <item name="colorPrimaryVariant">@color/archangel_purple_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/archangel_purple_light</item>
+        <item name="colorSecondaryVariant">@color/archangel_purple</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:colorBackground">@color/archangel_black</item>
+        <item name="colorSurface">@color/archangel_surface</item>
+        <item name="colorOnSurface">@color/archangel_text_primary</item>
+        <item name="android:windowBackground">@color/archangel_black</item>
+        <item name="android:statusBarColor">@color/archangel_black</item>
+        <item name="android:navigationBarColor">@color/archangel_black</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

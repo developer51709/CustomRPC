@@ -7,4 +7,17 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Archangel palette: black background + purple accents -->
+    <color name="archangel_black">#000000</color>
+    <color name="archangel_bg">#0A0610</color>
+    <color name="archangel_surface">#150B22</color>
+    <color name="archangel_surface_alt">#1E1230</color>
+    <color name="archangel_input_bg">#241636</color>
+    <color name="archangel_divider">#3A1F5C</color>
+    <color name="archangel_purple">#9B5DE5</color>
+    <color name="archangel_purple_light">#C39BF0</color>
+    <color name="archangel_purple_dark">#6A2DB5</color>
+    <color name="archangel_text_primary">#F4ECFF</color>
+    <color name="archangel_text_secondary">#B8A4D4</color>
 </resources>

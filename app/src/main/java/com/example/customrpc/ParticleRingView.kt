@@ -72,7 +72,7 @@ class ParticleRingView @JvmOverloads constructor(
         
         // 1. Draw Background Circle (Dark Grey)
         paint.style = Paint.Style.FILL
-        paint.color = Color.parseColor("#2F3136")
+        paint.color = Color.parseColor("#150B22")
         canvas.drawCircle(cx, cy, radius, paint)
 
         // 2. Draw Particles (All States)

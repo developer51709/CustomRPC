@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Custom RPC</string>
+    <string name="app_name">Archangel RPC</string>
     <string name="app_subtitle">Discord Rich Presence Client</string>
 
     <!-- Login View -->
@@ -98,6 +98,11 @@
     <string name="about_version">Version 1.1 (Codename: Archangel)</string>
     <string name="about_dev">Developed by Khoirul Aksara</string>
     <string name="btn_github">GitHub repository</string>
+    <string name="credits_title">Credits</string>
+    <string name="credit_nyxen_name">! - Nyxen</string>
+    <string name="credit_nyxen_role">Contributor</string>
+    <string name="btn_credit_github">GitHub profile</string>
+    <string name="btn_credit_website">Website</string>
     <string name="btn_email">Contact / Email</string>
     <string name="btn_donate">Donate (Buy me a coffee)</string>
     <string name="about_desc">Keep your Discord presence alive.\nSimple, lightweight, persistent.</string>

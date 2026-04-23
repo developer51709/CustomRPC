@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#36393F">
+    android:background="@color/archangel_bg">
 
     <!-- VIEW 1: LOGIN -->
     <LinearLayout
@@ -22,14 +22,14 @@
             android:text="@string/title_login"
             android:textSize="34sp"
             android:textStyle="bold"
-            android:textColor="#5865F2"
+            android:textColor="@color/archangel_purple"
             android:layout_marginBottom="8dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_subtitle"
-            android:textColor="#B9BBBE"
+            android:textColor="@color/archangel_text_secondary"
             android:textSize="16sp"
             android:layout_marginBottom="48dp"/>
 
@@ -54,9 +54,9 @@
             android:layout_height="56dp"
             android:text="@string/btn_login_discord"
             app:cornerRadius="8dp"
-            android:backgroundTint="#2F3136"
+            android:backgroundTint="@color/archangel_surface"
             android:textColor="#FFFFFF"
-            app:strokeColor="#5865F2"
+            app:strokeColor="@color/archangel_purple"
             app:strokeWidth="1dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -66,7 +66,7 @@
             android:text="@string/btn_login"
             android:layout_marginTop="24dp"
             app:cornerRadius="8dp"
-            android:backgroundTint="#5865F2"/>
+            android:backgroundTint="@color/archangel_purple"/>
             
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_token_guide_login"
@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btn_token_guide"
-            android:textColor="#B9BBBE"
+            android:textColor="@color/archangel_text_secondary"
             android:layout_marginTop="8dp"/>
     </LinearLayout>
 
@@ -84,7 +84,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#36393F"
+        android:background="@color/archangel_bg"
         android:visibility="gone">
 
         <!-- Top Bar -->
@@ -98,7 +98,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_info_details"
-                app:tint="#B9BBBE"
+                app:tint="@color/archangel_text_secondary"
                 android:layout_marginEnd="16dp"/>
 
             <ImageView
@@ -140,7 +140,7 @@
                         android:text="@string/status_label"
                         android:letterSpacing="0.2"
                         android:textSize="12sp"
-                        android:textColor="#B9BBBE"/>
+                        android:textColor="@color/archangel_text_secondary"/>
                     <TextView
                         android:id="@+id/tv_dashboard_status"
                         android:layout_width="wrap_content"
@@ -167,7 +167,7 @@
                 android:text="@string/btn_start"
                 android:textSize="18sp"
                 app:cornerRadius="30dp"
-                android:backgroundTint="#5865F2"/>
+                android:backgroundTint="@color/archangel_purple"/>
             
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_stop_service"
@@ -189,7 +189,7 @@
             android:text="@string/btn_configure"
             android:layout_margin="16dp"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#4F545C"/>
+            android:backgroundTint="@color/archangel_divider"/>
     </LinearLayout>
 
 
@@ -198,7 +198,7 @@
         android:id="@+id/view_settings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#36393F"
+        android:background="@color/archangel_bg"
         android:padding="16dp"
         android:visibility="visible">
 
@@ -221,7 +221,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/section_preview"
-                android:textColor="#B9BBBE"
+                android:textColor="@color/archangel_text_secondary"
                 android:textAllCaps="true"
                 android:textStyle="bold"
                 android:textSize="12sp"
@@ -231,10 +231,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="#2F3136"
+                app:cardBackgroundColor="@color/archangel_surface"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#202225"
+                app:strokeColor="@color/archangel_black"
                 app:strokeWidth="1dp">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -249,7 +249,7 @@
                             android:id="@+id/preview_large_image"
                             android:layout_width="56dp"
                             android:layout_height="56dp"
-                            android:background="#202225"
+                            android:background="@color/archangel_black"
                             android:scaleType="centerCrop"
                             android:src="@drawable/ic_app_logo_new"/>
                         <ImageView
@@ -257,7 +257,7 @@
                             android:layout_width="22dp"
                             android:layout_height="22dp"
                             android:layout_gravity="bottom|end"
-                            android:background="#36393F"
+                            android:background="@color/archangel_bg"
                             android:scaleType="centerCrop"
                             android:visibility="gone"/>
                     </FrameLayout>
@@ -271,7 +271,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/preview_header_playing"
-                            android:textColor="#B9BBBE"
+                            android:textColor="@color/archangel_text_secondary"
                             android:textSize="11sp"
                             android:textStyle="bold"
                             android:letterSpacing="0.05"/>
@@ -340,28 +340,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_user_status"
-                android:textColor="#B9BBBE"
+                android:textColor="@color/archangel_text_secondary"
                 android:layout_marginBottom="8dp"/>
             <Spinner
                 android:id="@+id/status_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@android:drawable/btn_dropdown"
-                android:backgroundTint="#B9BBBE"
+                android:backgroundTint="@color/archangel_text_secondary"
                 android:layout_marginBottom="16dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_activity_type"
-                android:textColor="#B9BBBE"
+                android:textColor="@color/archangel_text_secondary"
                 android:layout_marginBottom="8dp"/>
             <Spinner
                 android:id="@+id/activity_type_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@android:drawable/btn_dropdown"
-                android:backgroundTint="#B9BBBE"
+                android:backgroundTint="@color/archangel_text_secondary"
                 android:layout_marginBottom="16dp"/>
 
             <!-- STREAM URL (visible only when Streaming activity type is selected) -->
@@ -458,14 +458,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_timestamps"
-                android:textColor="#B9BBBE"
+                android:textColor="@color/archangel_text_secondary"
                 android:layout_marginBottom="8dp"/>
             <Spinner
                 android:id="@+id/timestamp_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:background="@android:drawable/btn_dropdown"
-                android:backgroundTint="#B9BBBE"
+                android:backgroundTint="@color/archangel_text_secondary"
                 android:layout_marginBottom="8dp"/>
             
             <LinearLayout
@@ -483,8 +483,8 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:text="@string/btn_ts_start"
-                        android:textColor="#B9BBBE"
-                        app:strokeColor="#4F545C"/>
+                        android:textColor="@color/archangel_text_secondary"
+                        app:strokeColor="@color/archangel_divider"/>
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_pick_end_time"
                         style="@style/Widget.Material3.Button.OutlinedButton"
@@ -493,8 +493,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/btn_ts_end"
                         android:layout_marginStart="8dp"
-                        android:textColor="#B9BBBE"
-                        app:strokeColor="#4F545C"/>
+                        android:textColor="@color/archangel_text_secondary"
+                        app:strokeColor="@color/archangel_divider"/>
                 </LinearLayout>
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="4dp">
                      <TextView android:id="@+id/tv_start_time_val" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/ts_none" android:gravity="center" android:textColor="#72767D" android:textSize="12sp"/>
@@ -503,7 +503,7 @@
             </LinearLayout>
 
             <!-- IMAGES -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_large_image" android:textColor="#B9BBBE" android:layout_marginTop="16dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_large_image" android:textColor="@color/archangel_text_secondary" android:layout_marginTop="16dp"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/lay_large_image_key"
@@ -535,7 +535,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_small_image" android:textColor="#B9BBBE"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_small_image" android:textColor="@color/archangel_text_secondary"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/lay_small_image_key"
@@ -568,7 +568,7 @@
             </LinearLayout>
 
             <!-- BUTTONS -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn1" android:textColor="#B9BBBE"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn1" android:textColor="@color/archangel_text_secondary"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
@@ -597,7 +597,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn2" android:textColor="#B9BBBE"/>
+             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_btn2" android:textColor="@color/archangel_text_secondary"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="24dp">
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
@@ -626,14 +626,14 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#4F545C" android:layout_marginBottom="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/archangel_divider" android:layout_marginBottom="16dp"/>
 
             <!-- ADVANCED ACTIONS: Reset / Export / Import -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/section_advanced"
-                android:textColor="#B9BBBE"
+                android:textColor="@color/archangel_text_secondary"
                 android:textAllCaps="true"
                 android:textStyle="bold"
                 android:textSize="12sp"
@@ -661,8 +661,8 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="@string/btn_export_settings"
-                    android:textColor="#B9BBBE"
-                    app:strokeColor="#4F545C"
+                    android:textColor="@color/archangel_text_secondary"
+                    app:strokeColor="@color/archangel_divider"
                     android:layout_marginEnd="8dp"/>
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_import_settings"
@@ -671,8 +671,8 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="@string/btn_import_settings"
-                    android:textColor="#B9BBBE"
-                    app:strokeColor="#4F545C"/>
+                    android:textColor="@color/archangel_text_secondary"
+                    app:strokeColor="@color/archangel_divider"/>
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -705,7 +705,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="32dp"
-        android:background="#36393F"
+        android:background="@color/archangel_bg"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -782,8 +782,87 @@
             android:layout_height="wrap_content"
             android:text="@string/about_desc"
             android:textAlignment="center"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="24dp"
             android:textColor="?attr/colorOnSurface"/>
+
+        <!-- Credits section -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/archangel_divider"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/credits_title"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:letterSpacing="0.15"
+            android:textColor="@color/archangel_text_secondary"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/archangel_surface"
+            app:cardCornerRadius="12dp"
+            app:strokeColor="@color/archangel_purple_dark"
+            app:strokeWidth="1dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/credit_nyxen_name"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/archangel_purple_light"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/credit_nyxen_role"
+                    android:textSize="13sp"
+                    android:textColor="@color/archangel_text_secondary"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_nyxen_github"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_credit_github"
+                        android:textColor="@color/archangel_purple_light"
+                        app:strokeColor="@color/archangel_purple"
+                        android:layout_marginEnd="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_nyxen_website"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_credit_website"
+                        android:textColor="@color/archangel_purple_light"
+                        app:strokeColor="@color/archangel_purple"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <Button
             android:id="@+id/btn_back_about"

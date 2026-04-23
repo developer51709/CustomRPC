@@ -833,8 +833,15 @@ class MainActivity : AppCompatActivity() {
         }
         
         btnDonate.setOnClickListener {
-             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/gonzsky")) 
+             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/gonzsky"))
              startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.btn_nyxen_github).setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/developer51709")))
+        }
+        findViewById<Button>(R.id.btn_nyxen_website).setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://nyxen.is-a.dev/")))
         }
     }
     
@@ -887,7 +894,7 @@ class MainActivity : AppCompatActivity() {
                 tvDashboardStatus.text = getString(R.string.status_offline)
                 tvDashboardStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark))
                 btnToggleConnection.text = getString(R.string.btn_start)
-                btnToggleConnection.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#5865F2")) 
+                btnToggleConnection.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#9B5DE5")) 
                 
                 // OFFLINE: Red Particles
                 particleView.setStatus(0)

@@ -114,6 +114,32 @@
     <string name="btn_open_login">Buka login</string>
     <string name="btn_close">Tutup</string>
 
+    <!-- Dashboard additions -->
+    <string name="btn_view_logs">Lihat log</string>
+    <string name="btn_token_options">Opsi token</string>
+    <string name="label_now_active">AKTIF SEKARANG</string>
+
+    <!-- Logs page -->
+    <string name="title_logs">Log Aktivitas</string>
+    <string name="btn_clear_logs">Hapus</string>
+    <string name="log_empty">Belum ada log.\nHubungkan ke Discord untuk melihat aktivitas.</string>
+
+    <!-- Token options dialog -->
+    <string name="dialog_token_options_title">Token</string>
+    <string name="btn_copy_token">Salin token</string>
+    <string name="btn_revoke_token">Cabut token…</string>
+    <string name="msg_token_copied">Token disalin ke clipboard</string>
+    <string name="msg_token_none">Tidak ada token tersimpan</string>
+    <string name="dialog_revoke_title">Cabut token?</string>
+    <string name="dialog_revoke_msg">Ini akan mengirim permintaan logout ke Discord dan menonaktifkan token Anda secara permanen. Anda perlu login ulang untuk mendapatkan token baru.\n\nYakin?</string>
+    <string name="btn_revoke_confirm">Ya, cabut</string>
+    <string name="msg_revoking">Mencabut token…</string>
+    <string name="msg_revoke_success">Token dicabut. Silakan login ulang.</string>
+    <string name="msg_revoke_failed">Pencabutan gagal: %s</string>
+
+    <!-- Config section label additions -->
+    <string name="section_activity_content">Konten</string>
+
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Channel layanan Discord RPC</string>
     <string name="notif_title_active">Discord RPC aktif</string>

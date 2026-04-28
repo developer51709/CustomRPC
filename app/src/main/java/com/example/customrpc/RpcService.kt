@@ -44,21 +44,15 @@ class RpcService : Service(), GatewayStateListener {
                 sendBroadcast(broadcastIntent)
             }
             ACTION_START -> {
-                isIntentionalStop = false // Reset intentional stop flag
+                isIntentionalStop = false
                 val token = intent.getStringExtra("TOKEN") ?: return START_NOT_STICKY
                 val appName = intent.getStringExtra("APP_NAME") ?: "Custom RPC"
-                
-                // Hapus pending reconnects
+                AppLogger.info("Service starting for \"$appName\"")
                 reconnectHandler.removeCallbacksAndMessages(null)
-
-                // Hentikan koneksi lama jika ada
                 gateway?.close()
-
                 startPersistentNotification(appName)
                 gateway = DiscordGateway(token, this)
                 gateway?.connect()
-                
-                // Mulai timer timeout
                 startConnectionTimeout()
             }
             ACTION_UPDATE_PRESENCE -> {
@@ -75,6 +69,7 @@ class RpcService : Service(), GatewayStateListener {
             }
             ACTION_STOP -> {
                 isIntentionalStop = true
+                AppLogger.info("Service stopped by user")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                 } else {
@@ -165,24 +160,25 @@ class RpcService : Service(), GatewayStateListener {
         lastIsConnected = isConnected
         lastMessage = message
         Log.d("RpcService", "Gateway state changed: isConnected=$isConnected, message=$message")
-        // Jika kita mendapat status berhasil, batalkan timeout dan reconnect
+        if (isConnected) {
+            AppLogger.info("Connected — $message")
+        } else {
+            AppLogger.warn("Disconnected — $message")
+        }
         if (isConnected) {
             clearConnectionTimeout()
             reconnectHandler.removeCallbacksAndMessages(null)
-            
-            // Auto-Restore Presence on Connect (Only when fully READY)
             if (message.contains("Ready", ignoreCase = true)) {
                 restoreLastPresence()
             }
         } else {
-            // Jika putus koneksi dan BUKAN user yang stop, coba reconnect
-            // Kita reconnect untuk semua error KECUALI Authentication Failed (Code 4004)
             val isAuthFailed = message.contains("4004") || message.contains("Invalid Session", ignoreCase = true)
-            
             if (!isIntentionalStop && !isConnected && !isAuthFailed) {
                  Log.w("RpcService", "Connection dropped unexpectedly ($message). Reconnecting in 5 seconds...")
+                 AppLogger.warn("Reconnecting in 5 s…")
                  reconnectHandler.postDelayed({
                      Log.i("RpcService", "Auto-Reconnecting now...")
+                     AppLogger.info("Auto-reconnect attempt started")
                      startConnectionTimeout()
                      gateway?.connect()
                  }, 5000)

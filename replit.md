@@ -28,7 +28,15 @@ Install on an Android device by transferring the desired APK and opening it (all
 ## Versioning
 - `versionCode` and `versionName` live in `app/build.gradle.kts` — current: `versionCode 4`, `versionName "1.1"`.
 
-## Recent changes
+## Recent changes (latest first)
+- **Token copy**: Lock icon on dashboard top bar → dialog shows masked token, "Copy token" button copies full token to clipboard.
+- **Token revoke**: Same dialog has "Revoke token…" which POSTs to `POST /api/v9/auth/logout` with the user's Authorization header to permanently invalidate the token, then logs the user out.
+- **Logs page**: Log icon (top-left of dashboard) opens a scrollable, timestamped activity log (info/warn/error). `AppLogger` singleton captures service events; "Clear" button wipes entries.
+- **Config page UI overhaul**: All fields are now grouped inside `MaterialCardView` section cards (Identity, Activity, Content, Party & Timing, Appearance, Buttons, Advanced). Section headers are styled in purple. Back arrow added to config header.
+- **Dashboard RPC management**: Presence info card (purple border) shows "NOW ACTIVE" with current activity name and details when connected, hidden when offline. Token options and log icons added to the top bar.
+- **AppLogger** (`AppLogger.kt`): new singleton keeping up to 500 in-memory log entries, with real-time listener callbacks used by the logs page.
+
+## Previous changes
 - **Streaming activity URL**: added a `Stream URL` text field shown only when `Activity Type = Streaming`. The URL is persisted alongside other settings and sent to Discord as the activity `url` field.
 - **Custom Party ID**: optional input under the party size/max row. Persisted and forwarded to Discord (skips auto-generated UUID when set).
 - **Live preview card**: top of the configuration screen renders a Discord-style activity card that updates as the user types name/details/state and changes activity type.

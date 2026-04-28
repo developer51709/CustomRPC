@@ -114,6 +114,32 @@
     <string name="btn_open_login">Open login</string>
     <string name="btn_close">Close</string>
 
+    <!-- Dashboard additions -->
+    <string name="btn_view_logs">View logs</string>
+    <string name="btn_token_options">Token options</string>
+    <string name="label_now_active">NOW ACTIVE</string>
+
+    <!-- Logs page -->
+    <string name="title_logs">Activity Logs</string>
+    <string name="btn_clear_logs">Clear</string>
+    <string name="log_empty">No logs yet.\nConnect to Discord to see activity here.</string>
+
+    <!-- Token options dialog -->
+    <string name="dialog_token_options_title">Token</string>
+    <string name="btn_copy_token">Copy token</string>
+    <string name="btn_revoke_token">Revoke token…</string>
+    <string name="msg_token_copied">Token copied to clipboard</string>
+    <string name="msg_token_none">No token saved</string>
+    <string name="dialog_revoke_title">Revoke token?</string>
+    <string name="dialog_revoke_msg">This will send a logout request to Discord and permanently invalidate your current token. You will need to log in again to get a new one.\n\nAre you sure?</string>
+    <string name="btn_revoke_confirm">Yes, revoke</string>
+    <string name="msg_revoking">Revoking token…</string>
+    <string name="msg_revoke_success">Token revoked. Please log in again.</string>
+    <string name="msg_revoke_failed">Revoke failed: %s</string>
+
+    <!-- Config section label additions -->
+    <string name="section_activity_content">Content</string>
+
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Discord RPC service channel</string>
     <string name="notif_title_active">Discord RPC active</string>

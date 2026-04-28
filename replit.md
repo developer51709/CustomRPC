@@ -28,6 +28,23 @@ Install on an Android device by transferring the desired APK and opening it (all
 ## Versioning
 - `versionCode` and `versionName` live in `app/build.gradle.kts` — current: `versionCode 4`, `versionName "1.1"`.
 
+## Features implemented (as of last build)
+- Login via Discord (WebView token sniffer) or manual token entry
+- RPC service with Gateway WebSocket (auto-reconnect, foreground service, wake/wifi locks)
+- Config page with live preview, all presence fields, asset picker, import/export/reset
+- Token copy & revoke (via Discord API)
+- Logs view (AppLogger singleton, real-time updates)
+- **RPC Rotation Mode** — up to N presets cycle on a configurable interval (30 s – 10 min). Managed via the rotation card on the dashboard or "Save as Rotation Preset" in config Advanced section.
+- **Device App Tracker** — shows the currently active foreground app in the presence card when connected. Requires Usage Access permission (`PACKAGE_USAGE_STATS`). Tapping the label prompts the user to grant it if not already granted.
+
+## Key files
+- `MainActivity.kt` — single-activity, 5 views (login, dashboard, settings, about, logs)
+- `RpcService.kt` — foreground service with rotation timer and gateway lifecycle
+- `RotationPreset.kt` — rotation preset data class with JSON serialization
+- `AppLogger.kt` — in-memory log ring buffer with listener callbacks
+- `DiscordGateway.kt` — WebSocket gateway to Discord
+- `activity_main.xml` — all 5 views in a single FrameLayout
+
 ## Recent changes (latest first)
 - **Token copy**: Lock icon on dashboard top bar → dialog shows masked token, "Copy token" button copies full token to clipboard.
 - **Token revoke**: Same dialog has "Revoke token…" which POSTs to `POST /api/v9/auth/logout` with the user's Authorization header to permanently invalidate the token, then logs the user out.

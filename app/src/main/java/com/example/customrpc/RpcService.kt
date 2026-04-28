@@ -21,9 +21,17 @@ class RpcService : Service(), GatewayStateListener {
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_UPDATE_PRESENCE = "ACTION_UPDATE_PRESENCE"
         const val ACTION_PROBE = "ACTION_PROBE"
+        const val ACTION_START_ROTATION = "ACTION_START_ROTATION"
+        const val ACTION_STOP_ROTATION = "ACTION_STOP_ROTATION"
         const val ACTION_STATUS_UPDATE = "com.example.customrpc.STATUS_UPDATE"
-        const val CONNECTION_TIMEOUT = 15000L // 15 detik
+        const val CONNECTION_TIMEOUT = 15000L
     }
+
+    private val rotationHandler = Handler(Looper.getMainLooper())
+    private var rotationRunnable: Runnable? = null
+    private var rotationPresets: List<RotationPreset> = emptyList()
+    private var rotationIndex = 0
+    private var rotationInterval = 60_000L
 
     // Cache state to reply to probes
     private var lastIsConnected = false
@@ -70,6 +78,7 @@ class RpcService : Service(), GatewayStateListener {
             ACTION_STOP -> {
                 isIntentionalStop = true
                 AppLogger.info("Service stopped by user")
+                stopRotation()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                 } else {
@@ -78,8 +87,49 @@ class RpcService : Service(), GatewayStateListener {
                 }
                 stopSelf()
             }
+            ACTION_START_ROTATION -> {
+                val presetsJson = intent.getStringExtra("PRESETS_JSON") ?: return START_STICKY
+                val intervalMs = intent.getLongExtra("INTERVAL_MS", 60_000L)
+                startRotation(presetsJson, intervalMs)
+            }
+            ACTION_STOP_ROTATION -> {
+                stopRotation()
+            }
         }
         return START_STICKY
+    }
+
+    private fun startRotation(presetsJson: String, intervalMs: Long) {
+        stopRotation()
+        try {
+            val arr = org.json.JSONArray(presetsJson)
+            rotationPresets = (0 until arr.length()).map { RotationPreset.fromJson(arr.getJSONObject(it)) }
+        } catch (e: Exception) {
+            AppLogger.error("Rotation parse error: ${e.message}")
+            return
+        }
+        if (rotationPresets.isEmpty()) {
+            AppLogger.warn("No rotation presets to cycle")
+            return
+        }
+        rotationInterval = intervalMs
+        rotationIndex = 0
+        AppLogger.info("Rotation started — ${rotationPresets.size} presets, every ${intervalMs / 1000}s")
+        rotationRunnable = object : Runnable {
+            override fun run() {
+                val preset = rotationPresets[rotationIndex % rotationPresets.size]
+                rotationIndex++
+                AppLogger.info("Rotation → \"${preset.label}\"")
+                gateway?.updatePresence(preset.toPresenceData())
+                rotationHandler.postDelayed(this, rotationInterval)
+            }
+        }
+        rotationHandler.post(rotationRunnable!!)
+    }
+
+    private fun stopRotation() {
+        rotationRunnable?.let { rotationHandler.removeCallbacks(it) }
+        rotationRunnable = null
     }
 
     private fun startConnectionTimeout() {
@@ -104,8 +154,9 @@ class RpcService : Service(), GatewayStateListener {
     override fun onDestroy() {
         Log.w("RpcService", "onDestroy called. Service is being stopped.")
         
-        // Stop any pending reconnects immediately
+        // Stop any pending reconnects and rotation immediately
         reconnectHandler.removeCallbacksAndMessages(null)
+        stopRotation()
         clearConnectionTimeout()
 
         try {

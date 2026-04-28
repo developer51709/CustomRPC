@@ -99,6 +99,20 @@ class MainActivity : AppCompatActivity() {
     private var lastPresenceName: String = ""
     private var lastPresenceDetails: String = ""
 
+    // Rotation Mode
+    private lateinit var swRotation: com.google.android.material.switchmaterial.SwitchMaterial
+    private lateinit var layRotationControls: View
+    private lateinit var spinnerRotationInterval: Spinner
+    private lateinit var btnManagePresets: com.google.android.material.button.MaterialButton
+    private lateinit var tvRotationStatus: TextView
+    private lateinit var tvDeviceApp: TextView
+    private var rotationEnabled = false
+    private val rotationIntervalValues = longArrayOf(30_000L, 60_000L, 120_000L, 300_000L, 600_000L)
+
+    // Device tracking
+    private val foregroundPollHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var foregroundPollRunnable: Runnable? = null
+
     // Web Interface
     inner class WebAppInterface {
         @android.webkit.JavascriptInterface
@@ -335,6 +349,48 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(getString(R.string.btn_no), null)
                 .show()
         }
+
+        // Rotation card
+        swRotation = findViewById(R.id.sw_rotation)
+        layRotationControls = findViewById(R.id.lay_rotation_controls)
+        spinnerRotationInterval = findViewById(R.id.spinner_rotation_interval)
+        btnManagePresets = findViewById(R.id.btn_manage_presets)
+        tvRotationStatus = findViewById(R.id.tv_rotation_status)
+        tvDeviceApp = findViewById(R.id.tv_device_app)
+
+        val intervalLabels = arrayOf("30 s", "1 min", "2 min", "5 min", "10 min")
+        val intervalAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, intervalLabels)
+        intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerRotationInterval.adapter = intervalAdapter
+
+        val prefs = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+        rotationEnabled = prefs.getBoolean("rotationEnabled", false)
+        swRotation.isChecked = rotationEnabled
+        spinnerRotationInterval.setSelection(prefs.getInt("rotationIntervalIdx", 1))
+        updateRotationCard()
+
+        swRotation.setOnCheckedChangeListener { _, isChecked ->
+            rotationEnabled = isChecked
+            getSharedPreferences("RpcSettings", Context.MODE_PRIVATE).edit()
+                .putBoolean("rotationEnabled", isChecked).apply()
+            updateRotationCard()
+            if (isChecked && isServiceConnected) {
+                startRotationInService()
+            } else {
+                stopRotationInService()
+            }
+        }
+
+        spinnerRotationInterval.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                getSharedPreferences("RpcSettings", Context.MODE_PRIVATE).edit()
+                    .putInt("rotationIntervalIdx", position).apply()
+                if (rotationEnabled && isServiceConnected) startRotationInService()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        btnManagePresets.setOnClickListener { showManagePresetsDialog() }
     }
 
     private fun sendDisconnectIntent() {
@@ -543,6 +599,9 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
+
+        val btnSaveAsPreset = findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_save_as_preset)
+        btnSaveAsPreset.setOnClickListener { saveCurrentAsRotationPreset() }
 
         btnResetSettings.setOnClickListener { confirmAndResetSettings() }
         btnExportSettings.setOnClickListener { exportSettingsToClipboard() }
@@ -836,6 +895,192 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── ROTATION MODE ─────────────────────────────────────────────────────────
+
+    private fun updateRotationCard() {
+        if (!::tvRotationStatus.isInitialized) return
+        val presets = loadRotationPresets()
+        tvRotationStatus.text = if (rotationEnabled) {
+            getString(R.string.rotation_status_on, presets.size)
+        } else {
+            getString(R.string.rotation_status_off)
+        }
+        layRotationControls.visibility = if (rotationEnabled) View.VISIBLE else View.GONE
+    }
+
+    private fun startRotationInService() {
+        val presets = loadRotationPresets()
+        if (presets.size < 2) {
+            Toast.makeText(this, getString(R.string.msg_need_presets_first), Toast.LENGTH_SHORT).show()
+            swRotation.isChecked = false
+            rotationEnabled = false
+            getSharedPreferences("RpcSettings", Context.MODE_PRIVATE).edit()
+                .putBoolean("rotationEnabled", false).apply()
+            updateRotationCard()
+            return
+        }
+        val presetsJson = org.json.JSONArray().apply { presets.forEach { put(it.toJson()) } }.toString()
+        val idx = spinnerRotationInterval.selectedItemPosition.coerceIn(0, rotationIntervalValues.size - 1)
+        val intervalMs = rotationIntervalValues[idx]
+        val serviceIntent = Intent(this, RpcService::class.java).apply {
+            action = RpcService.ACTION_START_ROTATION
+            putExtra("PRESETS_JSON", presetsJson)
+            putExtra("INTERVAL_MS", intervalMs)
+        }
+        startService(serviceIntent)
+        Toast.makeText(this, getString(R.string.msg_rotation_started), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun stopRotationInService() {
+        val serviceIntent = Intent(this, RpcService::class.java).apply {
+            action = RpcService.ACTION_STOP_ROTATION
+        }
+        startService(serviceIntent)
+    }
+
+    private fun loadRotationPresets(): List<RotationPreset> {
+        val json = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+            .getString("rotationPresets", "[]") ?: "[]"
+        return try {
+            val arr = org.json.JSONArray(json)
+            (0 until arr.length()).map { RotationPreset.fromJson(arr.getJSONObject(it)) }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    private fun saveRotationPresets(presets: List<RotationPreset>) {
+        val arr = org.json.JSONArray().apply { presets.forEach { put(it.toJson()) } }
+        getSharedPreferences("RpcSettings", Context.MODE_PRIVATE).edit()
+            .putString("rotationPresets", arr.toString()).apply()
+        updateRotationCard()
+    }
+
+    private fun showManagePresetsDialog() {
+        val presets = loadRotationPresets().toMutableList()
+        val items: Array<String> = if (presets.isEmpty()) {
+            arrayOf(getString(R.string.label_no_presets))
+        } else {
+            presets.map { "▸ ${it.label}  —  ${it.name}" }.toTypedArray()
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_presets_title))
+            .setItems(items) { _, which ->
+                if (presets.isNotEmpty()) {
+                    AlertDialog.Builder(this)
+                        .setTitle(presets[which].label)
+                        .setMessage(
+                            "Activity: ${presets[which].name}\n" +
+                            "Details: ${presets[which].details.ifBlank { "—" }}\n" +
+                            "State: ${presets[which].state.ifBlank { "—" }}"
+                        )
+                        .setNegativeButton(getString(R.string.btn_close), null)
+                        .setPositiveButton(getString(R.string.btn_preset_delete)) { _, _ ->
+                            presets.removeAt(which)
+                            saveRotationPresets(presets)
+                            Toast.makeText(this, getString(R.string.msg_preset_deleted), Toast.LENGTH_SHORT).show()
+                        }
+                        .show()
+                }
+            }
+            .setNeutralButton(getString(R.string.btn_preset_add_current)) { _, _ ->
+                saveCurrentAsRotationPreset()
+            }
+            .setPositiveButton(getString(R.string.btn_close), null)
+            .show()
+    }
+
+    private fun saveCurrentAsRotationPreset() {
+        val name = appNameEditText.text.toString().trim()
+        val appId = appIdEditText.text.toString().trim()
+        if (appId.isEmpty() || name.isEmpty()) {
+            Toast.makeText(this, getString(R.string.msg_no_app_id), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val preset = RotationPreset(
+            label = name,
+            appId = appId,
+            name = name,
+            details = detailsEditText.text.toString().trim(),
+            state = stateEditText.text.toString().trim(),
+            activityType = activityTypeSpinner.selectedItemPosition,
+            largeImageKey = (largeImageKeyEditText.tag as? String) ?: largeImageKeyEditText.text.toString().trim(),
+            largeImageText = largeImageTextEditText.text.toString().trim(),
+            smallImageKey = (smallImageKeyEditText.tag as? String) ?: smallImageKeyEditText.text.toString().trim(),
+            userStatus = when (statusSpinner.selectedItemPosition) {
+                0 -> "online"; 1 -> "idle"; 2 -> "dnd"; 3 -> "invisible"; else -> "online"
+            }
+        )
+        val presets = loadRotationPresets().toMutableList()
+        presets.add(preset)
+        saveRotationPresets(presets)
+        AppLogger.info("Rotation preset saved: \"${preset.label}\"")
+        Toast.makeText(this, getString(R.string.msg_preset_saved), Toast.LENGTH_SHORT).show()
+    }
+
+    // ── DEVICE APP TRACKING ───────────────────────────────────────────────────
+
+    private fun startForegroundPolling() {
+        stopForegroundPolling()
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP_MR1) return
+        foregroundPollRunnable = object : Runnable {
+            override fun run() {
+                updateDeviceAppDisplay()
+                foregroundPollHandler.postDelayed(this, 10_000)
+            }
+        }
+        foregroundPollHandler.post(foregroundPollRunnable!!)
+    }
+
+    private fun stopForegroundPolling() {
+        foregroundPollRunnable?.let { foregroundPollHandler.removeCallbacks(it) }
+        foregroundPollRunnable = null
+    }
+
+    private fun updateDeviceAppDisplay() {
+        if (!::tvDeviceApp.isInitialized) return
+        val appName = getForegroundApp()
+        if (appName != null) {
+            tvDeviceApp.text = "${getString(R.string.label_device_app)} $appName"
+            tvDeviceApp.visibility = View.VISIBLE
+            tvDeviceApp.setOnClickListener(null)
+        } else if (!hasUsageStatsPermission()) {
+            tvDeviceApp.text = getString(R.string.msg_usage_permission)
+            tvDeviceApp.visibility = View.VISIBLE
+            tvDeviceApp.setOnClickListener {
+                startActivity(android.content.Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            }
+        } else {
+            tvDeviceApp.visibility = View.GONE
+        }
+    }
+
+    private fun hasUsageStatsPermission(): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP_MR1) return false
+        val usm = getSystemService(Context.USAGE_STATS_SERVICE) as android.app.usage.UsageStatsManager
+        val now = System.currentTimeMillis()
+        val stats = usm.queryUsageStats(
+            android.app.usage.UsageStatsManager.INTERVAL_DAILY, now - 60_000, now
+        )
+        return !stats.isNullOrEmpty()
+    }
+
+    private fun getForegroundApp(): String? {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP_MR1) return null
+        if (!hasUsageStatsPermission()) return null
+        val usm = getSystemService(Context.USAGE_STATS_SERVICE) as android.app.usage.UsageStatsManager
+        val now = System.currentTimeMillis()
+        val stats = usm.queryUsageStats(
+            android.app.usage.UsageStatsManager.INTERVAL_DAILY, now - 15_000, now
+        )
+        if (stats.isNullOrEmpty()) return null
+        val topApp = stats.maxByOrNull { it.lastTimeUsed } ?: return null
+        if (topApp.packageName == packageName) return null
+        return try {
+            val info = packageManager.getApplicationInfo(topApp.packageName, 0)
+            packageManager.getApplicationLabel(info).toString()
+        } catch (e: Exception) { null }
+    }
+
     // ── NAVIGATION ────────────────────────────────────────────────────────────
 
     private fun showLogin() {
@@ -938,6 +1183,8 @@ class MainActivity : AppCompatActivity() {
             particleView.setStatus(2)
             updatePresenceInfoCard()
             cardPresenceInfo.visibility = View.VISIBLE
+            if (rotationEnabled) startRotationInService()
+            startForegroundPolling()
         } else {
             val isConnecting = message.contains("Connecting", true)
             if (isConnecting) {
@@ -951,6 +1198,9 @@ class MainActivity : AppCompatActivity() {
                 btnToggleConnection.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#9B5DE5"))
                 particleView.setStatus(0)
                 cardPresenceInfo.visibility = View.GONE
+                stopRotationInService()
+                stopForegroundPolling()
+                if (::tvDeviceApp.isInitialized) tvDeviceApp.visibility = View.GONE
             }
             tvDashboardDesc.text = message
         }
@@ -968,6 +1218,7 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         unregisterReceiver(statusReceiver)
         AppLogger.removeListener(logListener)
+        stopForegroundPolling()
     }
 
     // ── PERSISTENCE ───────────────────────────────────────────────────────────

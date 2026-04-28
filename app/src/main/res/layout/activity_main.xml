@@ -233,6 +233,17 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         tools:text="Playing online"/>
+                    <TextView
+                        android:id="@+id/tv_device_app"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#B0B0B0"
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp"
+                        android:drawablePadding="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:visibility="gone"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -255,6 +266,90 @@
                 android:textColor="#ED4245"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
+
+        <!-- ROTATION MODE CARD -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_rotation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="@color/archangel_surface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/archangel_divider"
+            app:strokeWidth="1dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_rotation_mode"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
+                        <TextView
+                            android:id="@+id/tv_rotation_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/rotation_status_off"
+                            android:textColor="@color/archangel_text_secondary"
+                            android:textSize="11sp"/>
+                    </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/sw_rotation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/lay_rotation_controls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_rotate_every"
+                        android:textColor="@color/archangel_text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"/>
+                    <Spinner
+                        android:id="@+id/spinner_rotation_interval"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="40dp"
+                        android:background="@android:drawable/btn_dropdown"
+                        android:backgroundTint="@color/archangel_text_secondary"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_manage_presets"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_manage_presets"
+                        android:textColor="@color/archangel_purple"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Bottom Bar -->
         <com.google.android.material.button.MaterialButton
@@ -980,6 +1075,16 @@
                         android:textSize="11sp"
                         android:letterSpacing="0.12"
                         android:layout_marginBottom="12dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_save_as_preset"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_save_as_preset"
+                        android:textColor="@color/archangel_purple"
+                        app:strokeColor="@color/archangel_purple"
+                        android:layout_marginBottom="8dp"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"

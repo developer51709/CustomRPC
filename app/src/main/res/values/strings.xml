@@ -140,6 +140,25 @@
     <!-- Config section label additions -->
     <string name="section_activity_content">Content</string>
 
+    <!-- Rotation Mode -->
+    <string name="label_rotation_mode">RPC Rotation</string>
+    <string name="rotation_status_off">Disabled — toggle to enable cycling</string>
+    <string name="rotation_status_on">Active · %d preset(s) cycling</string>
+    <string name="label_rotate_every">Every</string>
+    <string name="btn_manage_presets">Presets</string>
+    <string name="btn_save_as_preset">Save as Rotation Preset</string>
+    <string name="dialog_presets_title">Rotation Presets</string>
+    <string name="label_no_presets">No presets yet. Use \'Add Current\' below to save one.</string>
+    <string name="msg_preset_saved">Saved as rotation preset</string>
+    <string name="msg_preset_deleted">Preset deleted</string>
+    <string name="btn_preset_delete">Delete</string>
+    <string name="btn_preset_add_current">Add Current Config</string>
+    <string name="msg_rotation_started">Rotation started</string>
+    <string name="msg_rotation_stopped">Rotation stopped</string>
+    <string name="msg_need_presets_first">Add at least 2 presets before enabling rotation</string>
+    <string name="label_device_app">Device:</string>
+    <string name="msg_usage_permission">Tap to grant Usage Access for device tracking</string>
+
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Discord RPC service channel</string>
     <string name="notif_title_active">Discord RPC active</string>

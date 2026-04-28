@@ -140,6 +140,25 @@
     <!-- Config section label additions -->
     <string name="section_activity_content">Konten</string>
 
+    <!-- Rotation Mode -->
+    <string name="label_rotation_mode">Rotasi RPC</string>
+    <string name="rotation_status_off">Nonaktif — toggle untuk mengaktifkan siklus</string>
+    <string name="rotation_status_on">Aktif · %d preset berjalan</string>
+    <string name="label_rotate_every">Setiap</string>
+    <string name="btn_manage_presets">Preset</string>
+    <string name="btn_save_as_preset">Simpan sebagai Preset Rotasi</string>
+    <string name="dialog_presets_title">Preset Rotasi</string>
+    <string name="label_no_presets">Belum ada preset. Gunakan \'Tambah Saat Ini\' untuk menyimpan.</string>
+    <string name="msg_preset_saved">Disimpan sebagai preset rotasi</string>
+    <string name="msg_preset_deleted">Preset dihapus</string>
+    <string name="btn_preset_delete">Hapus</string>
+    <string name="btn_preset_add_current">Tambah Konfigurasi Saat Ini</string>
+    <string name="msg_rotation_started">Rotasi dimulai</string>
+    <string name="msg_rotation_stopped">Rotasi dihentikan</string>
+    <string name="msg_need_presets_first">Tambahkan minimal 2 preset sebelum mengaktifkan rotasi</string>
+    <string name="label_device_app">Perangkat:</string>
+    <string name="msg_usage_permission">Ketuk untuk memberi izin Akses Penggunaan</string>
+
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Channel layanan Discord RPC</string>
     <string name="notif_title_active">Discord RPC aktif</string>

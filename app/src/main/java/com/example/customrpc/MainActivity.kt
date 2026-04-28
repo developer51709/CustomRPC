@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewSettings: View
     private lateinit var viewAbout: View
     private lateinit var viewLogs: View
+    private lateinit var viewPresets: View
+    private lateinit var viewAppTracker: View
 
     // Login View Elements
     private lateinit var loginTokenInput: EditText
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cardPresenceInfo: View
     private lateinit var tvPresenceName: TextView
     private lateinit var tvPresenceDetails: TextView
+    private lateinit var tvTrackerDashStatus: TextView
 
     // Settings View Elements
     private lateinit var appIdEditText: EditText
@@ -109,9 +113,40 @@ class MainActivity : AppCompatActivity() {
     private var rotationEnabled = false
     private val rotationIntervalValues = longArrayOf(30_000L, 60_000L, 120_000L, 300_000L, 600_000L)
 
-    // Device tracking
+    // Presets Page
+    private lateinit var layStaticPresetsContainer: LinearLayout
+    private lateinit var layUserPresetsContainer: LinearLayout
+    private lateinit var tvNoUserPresets: TextView
+
+    // App Activity Tracker Page
+    private lateinit var tvTrackerCurrentApp: TextView
+    private lateinit var swAppActivityMode: com.google.android.material.switchmaterial.SwitchMaterial
+    private lateinit var layAppTrackerSettings: View
+    private lateinit var spinnerTrackerInterval: Spinner
+    private lateinit var spinnerTrackerField: Spinner
+    private lateinit var etTrackerAppId: EditText
+    private lateinit var etTrackerPrefix: EditText
+    private lateinit var etTrackerDetails: EditText
+    private lateinit var etTrackerState: EditText
+    private lateinit var cardTrackerPerm: View
+    private var appActivityModeEnabled = false
+    private val trackerIntervalValues = longArrayOf(5_000L, 10_000L, 30_000L, 60_000L)
+    private val appActivityHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var appActivityRunnable: Runnable? = null
+    private var lastTrackedApp: String = ""
+
+    // Device tracking (dashboard)
     private val foregroundPollHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var foregroundPollRunnable: Runnable? = null
+
+    // File operation launchers
+    private val createFileLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri -> uri?.let { exportSettingsToFile(it) } }
+
+    private val openFileLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { importSettingsFromFile(it) } }
 
     // Web Interface
     inner class WebAppInterface {
@@ -173,13 +208,18 @@ class MainActivity : AppCompatActivity() {
         viewSettings = findViewById(R.id.view_settings)
         viewAbout = findViewById(R.id.view_about)
         viewLogs = findViewById(R.id.view_logs)
+        viewPresets = findViewById(R.id.view_presets)
+        viewAppTracker = findViewById(R.id.view_app_tracker)
 
         bindLoginViews()
         bindDashboardViews()
         bindSettingsViews()
         bindLogsViews()
+        bindPresetsViews()
+        bindAppTrackerViews()
 
         loadSettings()
+        loadTrackerSettings()
 
         val savedToken = loginTokenInput.text.toString()
         if (savedToken.isNotBlank()) {
@@ -195,6 +235,8 @@ class MainActivity : AppCompatActivity() {
                 when {
                     viewLogs.visibility == View.VISIBLE -> showDashboard()
                     viewAbout.visibility == View.VISIBLE -> showDashboard()
+                    viewPresets.visibility == View.VISIBLE -> showDashboard()
+                    viewAppTracker.visibility == View.VISIBLE -> showDashboard()
                     viewSettings.visibility == View.VISIBLE -> {
                         loadSettings()
                         showDashboard()
@@ -293,6 +335,7 @@ class MainActivity : AppCompatActivity() {
         cardPresenceInfo = findViewById(R.id.card_presence_info)
         tvPresenceName = findViewById(R.id.tv_presence_name)
         tvPresenceDetails = findViewById(R.id.tv_presence_details)
+        tvTrackerDashStatus = findViewById(R.id.tv_tracker_dash_status)
 
         val btnAbout = findViewById<ImageView>(R.id.btn_about)
         val btnLogs = findViewById<ImageView>(R.id.btn_logs)
@@ -375,6 +418,12 @@ class MainActivity : AppCompatActivity() {
                 .putBoolean("rotationEnabled", isChecked).apply()
             updateRotationCard()
             if (isChecked && isServiceConnected) {
+                if (appActivityModeEnabled) {
+                    stopAppActivityUpdates()
+                    appActivityModeEnabled = false
+                    saveTrackerSettings()
+                    updateTrackerDashStatus()
+                }
                 startRotationInService()
             } else {
                 stopRotationInService()
@@ -390,7 +439,11 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        btnManagePresets.setOnClickListener { showManagePresetsDialog() }
+        btnManagePresets.setOnClickListener { showPresetsPage() }
+
+        // App Tracker card
+        val btnConfigureTracker = findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_configure_tracker)
+        btnConfigureTracker.setOnClickListener { showAppTrackerPage() }
     }
 
     private fun sendDisconnectIntent() {
@@ -566,7 +619,6 @@ class MainActivity : AppCompatActivity() {
 
         btnSaveApply.setOnClickListener {
             saveSettings()
-            // cache for presence info card
             lastPresenceName = appNameEditText.text.toString()
             lastPresenceDetails = detailsEditText.text.toString()
             if (isServiceConnected) {
@@ -604,8 +656,8 @@ class MainActivity : AppCompatActivity() {
         btnSaveAsPreset.setOnClickListener { saveCurrentAsRotationPreset() }
 
         btnResetSettings.setOnClickListener { confirmAndResetSettings() }
-        btnExportSettings.setOnClickListener { exportSettingsToClipboard() }
-        btnImportSettings.setOnClickListener { importSettingsFromClipboard() }
+        btnExportSettings.setOnClickListener { showExportOptions() }
+        btnImportSettings.setOnClickListener { showImportOptions() }
     }
 
     private fun updateLivePreview() {
@@ -670,9 +722,37 @@ class MainActivity : AppCompatActivity() {
         updateLivePreview()
     }
 
-    private fun exportSettingsToClipboard() {
-        val json = org.json.JSONObject().apply {
-            put("_format", "customrpc/v1")
+    // ── EXPORT / IMPORT ───────────────────────────────────────────────────────
+
+    private fun showExportOptions() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_export_title))
+            .setItems(arrayOf(getString(R.string.export_option_clipboard), getString(R.string.export_option_file))) { _, which ->
+                if (which == 0) exportSettingsToClipboard() else {
+                    createFileLauncher.launch("customrpc_backup_${System.currentTimeMillis()}.json")
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_close), null)
+            .show()
+    }
+
+    private fun showImportOptions() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_import_title))
+            .setItems(arrayOf(getString(R.string.import_option_clipboard), getString(R.string.import_option_file))) { _, which ->
+                if (which == 0) importSettingsFromClipboard() else {
+                    openFileLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_close), null)
+            .show()
+    }
+
+    private fun buildExportJson(): String {
+        val presets = loadRotationPresets()
+        val presetsArr = org.json.JSONArray().apply { presets.forEach { put(it.toJson()) } }
+        return org.json.JSONObject().apply {
+            put("_format", "customrpc/v2")
             put("appId", appIdEditText.text.toString())
             put("appName", appNameEditText.text.toString())
             put("activityType", activityTypeSpinner.selectedItemPosition)
@@ -696,10 +776,79 @@ class MainActivity : AppCompatActivity() {
             put("timestampMode", timestampSpinner.selectedItemPosition)
             put("customStartTime", customStartTime ?: 0L)
             put("customEndTime", customEndTime ?: 0L)
+            put("rotationPresets", presetsArr)
         }.toString(2)
+    }
+
+    private fun exportSettingsToClipboard() {
+        val json = buildExportJson()
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         cm.setPrimaryClip(android.content.ClipData.newPlainText("CustomRPC settings", json))
         Toast.makeText(this, getString(R.string.msg_settings_exported), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun exportSettingsToFile(uri: Uri) {
+        try {
+            val json = buildExportJson()
+            contentResolver.openOutputStream(uri)?.use { out ->
+                out.write(json.toByteArray())
+            }
+            Toast.makeText(this, getString(R.string.msg_settings_exported_file), Toast.LENGTH_SHORT).show()
+            AppLogger.info("Settings exported to file")
+        } catch (e: Exception) {
+            Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+            AppLogger.error("Export to file failed: ${e.message}")
+        }
+    }
+
+    private fun applyImportJson(raw: String) {
+        val j = org.json.JSONObject(raw)
+        val format = j.optString("_format")
+        if (format != "customrpc/v1" && format != "customrpc/v2") {
+            Toast.makeText(this, getString(R.string.msg_invalid_json), Toast.LENGTH_SHORT).show()
+            return
+        }
+        appIdEditText.setText(j.optString("appId"))
+        appNameEditText.setText(j.optString("appName"))
+        activityTypeSpinner.setSelection(j.optInt("activityType", 0))
+        streamUrlEditText.setText(j.optString("streamUrl"))
+        statusSpinner.setSelection(j.optInt("userStatus", 0))
+        detailsEditText.setText(j.optString("details"))
+        stateEditText.setText(j.optString("state"))
+        partySizeEditText.setText(j.optString("partySize"))
+        partyMaxEditText.setText(j.optString("partyMax"))
+        partyIdEditText.setText(j.optString("partyId"))
+        largeImageKeyEditText.setText(j.optString("largeImageName"))
+        largeImageKeyEditText.tag = j.optString("largeImageKey")
+        largeImageTextEditText.setText(j.optString("largeImageText"))
+        smallImageKeyEditText.setText(j.optString("smallImageName"))
+        smallImageKeyEditText.tag = j.optString("smallImageKey")
+        smallImageTextEditText.setText(j.optString("smallImageText"))
+        btn1Text.setText(j.optString("btn1Text"))
+        btn1Url.setText(j.optString("btn1Url"))
+        btn2Text.setText(j.optString("btn2Text"))
+        btn2Url.setText(j.optString("btn2Url"))
+        timestampSpinner.setSelection(j.optInt("timestampMode", 0))
+        customStartTime = j.optLong("customStartTime", 0L).takeIf { it != 0L }
+        customEndTime = j.optLong("customEndTime", 0L).takeIf { it != 0L }
+        if (customStartTime != null) tvStartTimeVal.text = Date(customStartTime!!).toString()
+        if (customEndTime != null) tvEndTimeVal.text = Date(customEndTime!!).toString()
+        saveSettings()
+        updateLivePreview()
+
+        // Import rotation presets if present (v2)
+        if (format == "customrpc/v2" && j.has("rotationPresets")) {
+            try {
+                val arr = j.getJSONArray("rotationPresets")
+                val presets = (0 until arr.length()).map { RotationPreset.fromJson(arr.getJSONObject(it)) }
+                saveRotationPresets(presets)
+                Toast.makeText(this, getString(R.string.msg_settings_imported) + " (${presets.size} presets)", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.msg_settings_imported), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, getString(R.string.msg_settings_imported), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun importSettingsFromClipboard() {
@@ -710,41 +859,24 @@ class MainActivity : AppCompatActivity() {
             return
         }
         try {
-            val j = org.json.JSONObject(raw)
-            if (j.optString("_format") != "customrpc/v1") {
-                Toast.makeText(this, getString(R.string.msg_invalid_json), Toast.LENGTH_SHORT).show()
-                return
-            }
-            appIdEditText.setText(j.optString("appId"))
-            appNameEditText.setText(j.optString("appName"))
-            activityTypeSpinner.setSelection(j.optInt("activityType", 0))
-            streamUrlEditText.setText(j.optString("streamUrl"))
-            statusSpinner.setSelection(j.optInt("userStatus", 0))
-            detailsEditText.setText(j.optString("details"))
-            stateEditText.setText(j.optString("state"))
-            partySizeEditText.setText(j.optString("partySize"))
-            partyMaxEditText.setText(j.optString("partyMax"))
-            partyIdEditText.setText(j.optString("partyId"))
-            largeImageKeyEditText.setText(j.optString("largeImageName"))
-            largeImageKeyEditText.tag = j.optString("largeImageKey")
-            largeImageTextEditText.setText(j.optString("largeImageText"))
-            smallImageKeyEditText.setText(j.optString("smallImageName"))
-            smallImageKeyEditText.tag = j.optString("smallImageKey")
-            smallImageTextEditText.setText(j.optString("smallImageText"))
-            btn1Text.setText(j.optString("btn1Text"))
-            btn1Url.setText(j.optString("btn1Url"))
-            btn2Text.setText(j.optString("btn2Text"))
-            btn2Url.setText(j.optString("btn2Url"))
-            timestampSpinner.setSelection(j.optInt("timestampMode", 0))
-            customStartTime = j.optLong("customStartTime", 0L).takeIf { it != 0L }
-            customEndTime = j.optLong("customEndTime", 0L).takeIf { it != 0L }
-            if (customStartTime != null) tvStartTimeVal.text = Date(customStartTime!!).toString()
-            if (customEndTime != null) tvEndTimeVal.text = Date(customEndTime!!).toString()
-            saveSettings()
-            updateLivePreview()
-            Toast.makeText(this, getString(R.string.msg_settings_imported), Toast.LENGTH_SHORT).show()
+            applyImportJson(raw)
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.msg_invalid_json), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun importSettingsFromFile(uri: Uri) {
+        try {
+            val raw = contentResolver.openInputStream(uri)?.bufferedReader()?.readText()?.trim()
+            if (raw.isNullOrEmpty()) {
+                Toast.makeText(this, getString(R.string.msg_invalid_json_file), Toast.LENGTH_SHORT).show()
+                return
+            }
+            applyImportJson(raw)
+            AppLogger.info("Settings imported from file")
+        } catch (e: Exception) {
+            Toast.makeText(this, getString(R.string.msg_invalid_json_file), Toast.LENGTH_SHORT).show()
+            AppLogger.error("Import from file failed: ${e.message}")
         }
     }
 
@@ -890,7 +1022,6 @@ class MainActivity : AppCompatActivity() {
                 sb.append("[${e.timestamp}] $levelTag ${e.message}\n")
             }
             tvLogs.text = sb.toString().trimEnd()
-            // Scroll to bottom
             scrollLogs.post { scrollLogs.fullScroll(ScrollView.FOCUS_DOWN) }
         }
     }
@@ -954,41 +1085,6 @@ class MainActivity : AppCompatActivity() {
         updateRotationCard()
     }
 
-    private fun showManagePresetsDialog() {
-        val presets = loadRotationPresets().toMutableList()
-        val items: Array<String> = if (presets.isEmpty()) {
-            arrayOf(getString(R.string.label_no_presets))
-        } else {
-            presets.map { "▸ ${it.label}  —  ${it.name}" }.toTypedArray()
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.dialog_presets_title))
-            .setItems(items) { _, which ->
-                if (presets.isNotEmpty()) {
-                    AlertDialog.Builder(this)
-                        .setTitle(presets[which].label)
-                        .setMessage(
-                            "Activity: ${presets[which].name}\n" +
-                            "Details: ${presets[which].details.ifBlank { "—" }}\n" +
-                            "State: ${presets[which].state.ifBlank { "—" }}"
-                        )
-                        .setNegativeButton(getString(R.string.btn_close), null)
-                        .setPositiveButton(getString(R.string.btn_preset_delete)) { _, _ ->
-                            presets.removeAt(which)
-                            saveRotationPresets(presets)
-                            Toast.makeText(this, getString(R.string.msg_preset_deleted), Toast.LENGTH_SHORT).show()
-                        }
-                        .show()
-                }
-            }
-            .setNeutralButton(getString(R.string.btn_preset_add_current)) { _, _ ->
-                saveCurrentAsRotationPreset()
-            }
-            .setPositiveButton(getString(R.string.btn_close), null)
-            .show()
-    }
-
     private fun saveCurrentAsRotationPreset() {
         val name = appNameEditText.text.toString().trim()
         val appId = appIdEditText.text.toString().trim()
@@ -1006,6 +1102,12 @@ class MainActivity : AppCompatActivity() {
             largeImageKey = (largeImageKeyEditText.tag as? String) ?: largeImageKeyEditText.text.toString().trim(),
             largeImageText = largeImageTextEditText.text.toString().trim(),
             smallImageKey = (smallImageKeyEditText.tag as? String) ?: smallImageKeyEditText.text.toString().trim(),
+            smallImageText = smallImageTextEditText.text.toString().trim(),
+            streamUrl = streamUrlEditText.text.toString().trim(),
+            button1Label = btn1Text.text.toString().trim(),
+            button1Url = btn1Url.text.toString().trim(),
+            button2Label = btn2Text.text.toString().trim(),
+            button2Url = btn2Url.text.toString().trim(),
             userStatus = when (statusSpinner.selectedItemPosition) {
                 0 -> "online"; 1 -> "idle"; 2 -> "dnd"; 3 -> "invisible"; else -> "online"
             }
@@ -1013,14 +1115,528 @@ class MainActivity : AppCompatActivity() {
         val presets = loadRotationPresets().toMutableList()
         presets.add(preset)
         saveRotationPresets(presets)
-        AppLogger.info("Rotation preset saved: \"${preset.label}\"")
         Toast.makeText(this, getString(R.string.msg_preset_saved), Toast.LENGTH_SHORT).show()
     }
 
-    // ── DEVICE APP TRACKING ───────────────────────────────────────────────────
+    // ── PRESET MANAGER PAGE ───────────────────────────────────────────────────
+
+    private fun bindPresetsViews() {
+        layStaticPresetsContainer = viewPresets.findViewById(R.id.lay_static_presets_container)
+        layUserPresetsContainer = viewPresets.findViewById(R.id.lay_user_presets_container)
+        tvNoUserPresets = viewPresets.findViewById(R.id.tv_no_user_presets)
+
+        val btnBackPresets = viewPresets.findViewById<ImageView>(R.id.btn_back_presets)
+        btnBackPresets.setOnClickListener { showDashboard() }
+
+        val btnAddNewPreset = viewPresets.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_add_new_preset)
+        btnAddNewPreset.setOnClickListener { showAddEditPresetDialog() }
+
+        buildStaticTemplateCards()
+    }
+
+    private fun getStaticTemplates(): List<Triple<String, String, RotationPreset>> = listOf(
+        Triple("Gaming Session", "Playing • Online",
+            RotationPreset("Gaming Session", "", "A Game", "In a match", "Level 1", 0, "", "", "", "", "", "", "", "", "", "online")),
+        Triple("Music Break", "Listening • Online",
+            RotationPreset("Music Break", "", "My Playlist", "Vibing to music", "", 2, "", "", "", "", "", "", "", "", "", "online")),
+        Triple("Code Session", "Custom • Do Not Disturb",
+            RotationPreset("Code Session", "", "VS Code", "Writing some code", "In the zone", 4, "", "", "", "", "", "", "", "", "", "dnd")),
+        Triple("Movie Time", "Watching • Idle",
+            RotationPreset("Movie Time", "", "Netflix", "Watching a movie", "", 3, "", "", "", "", "", "", "", "", "", "idle")),
+        Triple("AFK", "Custom • Idle",
+            RotationPreset("AFK", "", "Away", "Away from keyboard", "Back soon", 4, "", "", "", "", "", "", "", "", "", "idle"))
+    )
+
+    private fun buildStaticTemplateCards() {
+        layStaticPresetsContainer.removeAllViews()
+        val templates = getStaticTemplates()
+        templates.forEach { (name, desc, template) ->
+            val card = createPresetCard(
+                label = name,
+                subtitle = desc,
+                showEdit = false,
+                onPrimary = {
+                    showAddEditPresetDialog(template.copy(label = name), -1, isTemplate = true)
+                },
+                onDelete = null
+            )
+            layStaticPresetsContainer.addView(card)
+        }
+    }
+
+    private fun refreshPresetsPage() {
+        layUserPresetsContainer.removeAllViews()
+        val presets = loadRotationPresets()
+        tvNoUserPresets.visibility = if (presets.isEmpty()) View.VISIBLE else View.GONE
+        presets.forEachIndexed { index, preset ->
+            val typeLabel = when (preset.activityType) {
+                1 -> "Streaming"; 2 -> "Listening"; 3 -> "Watching"; 4 -> "Custom"; 5 -> "Competing"
+                else -> "Playing"
+            }
+            val statusLabel = when (preset.userStatus) {
+                "idle" -> "Idle"; "dnd" -> "DND"; "invisible" -> "Invisible"; else -> "Online"
+            }
+            val subtitle = "$typeLabel • $statusLabel — ${preset.name.ifBlank { "—" }}"
+            val card = createPresetCard(
+                label = preset.label,
+                subtitle = subtitle,
+                showEdit = true,
+                onPrimary = { showAddEditPresetDialog(preset, index) },
+                onDelete = {
+                    val mutablePresets = loadRotationPresets().toMutableList()
+                    if (index < mutablePresets.size) {
+                        mutablePresets.removeAt(index)
+                        saveRotationPresets(mutablePresets)
+                        refreshPresetsPage()
+                        Toast.makeText(this, getString(R.string.msg_preset_deleted), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+            layUserPresetsContainer.addView(card)
+        }
+    }
+
+    private fun createPresetCard(
+        label: String,
+        subtitle: String,
+        showEdit: Boolean,
+        onPrimary: () -> Unit,
+        onDelete: (() -> Unit)?
+    ): View {
+        val density = resources.displayMetrics.density
+        fun dp(v: Int) = (v * density).toInt()
+
+        val card = com.google.android.material.card.MaterialCardView(this).apply {
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.setMargins(0, 0, 0, dp(8))
+            layoutParams = lp
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.archangel_surface))
+            radius = dp(10).toFloat()
+            cardElevation = 0f
+            strokeColor = ContextCompat.getColor(context, R.color.archangel_divider)
+            strokeWidth = dp(1)
+        }
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(10), dp(8), dp(10))
+        }
+
+        val textCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            layoutParams = lp
+        }
+
+        val tvLabel = TextView(this).apply {
+            text = label
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 14f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }
+        val tvSub = TextView(this).apply {
+            text = subtitle
+            setTextColor(ContextCompat.getColor(context, R.color.archangel_text_secondary))
+            textSize = 12f
+        }
+        textCol.addView(tvLabel)
+        textCol.addView(tvSub)
+        row.addView(textCol)
+
+        if (showEdit) {
+            val btnEdit = com.google.android.material.button.MaterialButton(
+                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                text = getString(R.string.btn_edit_preset)
+                setTextColor(ContextCompat.getColor(context, R.color.archangel_purple))
+                strokeColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context, R.color.archangel_purple))
+                textSize = 11f
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.setMargins(dp(4), 0, 0, 0)
+                layoutParams = lp
+                setOnClickListener { onPrimary() }
+            }
+            row.addView(btnEdit)
+        } else {
+            val btnUse = com.google.android.material.button.MaterialButton(
+                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                text = getString(R.string.btn_add_template)
+                setTextColor(ContextCompat.getColor(context, R.color.archangel_purple))
+                strokeColor = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context, R.color.archangel_purple))
+                textSize = 11f
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.setMargins(dp(4), 0, 0, 0)
+                layoutParams = lp
+                setOnClickListener { onPrimary() }
+            }
+            row.addView(btnUse)
+        }
+
+        if (onDelete != null) {
+            val btnDel = com.google.android.material.button.MaterialButton(
+                this, null, android.R.attr.borderlessButtonStyle
+            ).apply {
+                text = "✕"
+                setTextColor(0xFFED4245.toInt())
+                textSize = 13f
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.setMargins(0, 0, 0, 0)
+                layoutParams = lp
+                setOnClickListener {
+                    AlertDialog.Builder(context)
+                        .setTitle("Delete preset?")
+                        .setMessage("Remove \"$label\" from your presets?")
+                        .setPositiveButton("Delete") { _, _ -> onDelete() }
+                        .setNegativeButton(getString(R.string.btn_no), null)
+                        .show()
+                }
+            }
+            row.addView(btnDel)
+        }
+
+        card.addView(row)
+        return card
+    }
+
+    private fun showAddEditPresetDialog(
+        existingPreset: RotationPreset? = null,
+        existingIndex: Int = -1,
+        isTemplate: Boolean = false
+    ) {
+        val density = resources.displayMetrics.density
+        fun dp(v: Int) = (v * density).toInt()
+
+        val scroll = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(16), dp(20), dp(16))
+        }
+
+        fun makeEditText(hint: String, initial: String): EditText = EditText(this).apply {
+            this.hint = hint
+            setText(initial)
+            setHintTextColor(0xFF888888.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
+            setPadding(dp(4), dp(8), dp(4), dp(8))
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, 0, 0, dp(12))
+            layoutParams = lp
+        }
+
+        fun makeLabel(text: String): TextView = TextView(this).apply {
+            this.text = text
+            setTextColor(0xFF999999.toInt())
+            textSize = 12f
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, dp(4), 0, dp(4))
+            layoutParams = lp
+        }
+
+        val etLabel = makeEditText(getString(R.string.hint_preset_label), existingPreset?.label ?: "")
+        val etAppId = makeEditText(getString(R.string.hint_app_id) + (if (isTemplate) " (required)" else ""), existingPreset?.appId ?: "")
+        val etName = makeEditText(getString(R.string.hint_app_name), existingPreset?.name ?: "")
+        val etDetails = makeEditText(getString(R.string.hint_details), existingPreset?.details ?: "")
+        val etState = makeEditText(getString(R.string.hint_state), existingPreset?.state ?: "")
+        val etLargeKey = makeEditText(getString(R.string.label_large_image) + " key", existingPreset?.largeImageKey ?: "")
+        val etLargeText = makeEditText(getString(R.string.label_large_image) + " tooltip", existingPreset?.largeImageText ?: "")
+        val etSmallKey = makeEditText(getString(R.string.label_small_image) + " key", existingPreset?.smallImageKey ?: "")
+        val etBtn1Label = makeEditText("Button 1 label", existingPreset?.button1Label ?: "")
+        val etBtn1Url = makeEditText("Button 1 URL", existingPreset?.button1Url ?: "")
+        val etBtn2Label = makeEditText("Button 2 label", existingPreset?.button2Label ?: "")
+        val etBtn2Url = makeEditText("Button 2 URL", existingPreset?.button2Url ?: "")
+
+        val types = arrayOf("Playing", "Streaming", "Listening", "Watching", "Custom", "Competing")
+        val spinnerType = Spinner(this).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, types)
+            setSelection(existingPreset?.activityType ?: 0)
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, 0, 0, dp(12))
+            layoutParams = lp
+        }
+
+        val statuses = arrayOf("Online", "Idle", "Do Not Disturb", "Invisible")
+        val spinnerStatus = Spinner(this).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, statuses)
+            val sel = when (existingPreset?.userStatus) {
+                "idle" -> 1; "dnd" -> 2; "invisible" -> 3; else -> 0
+            }
+            setSelection(sel)
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, 0, 0, dp(12))
+            layoutParams = lp
+        }
+
+        layout.apply {
+            addView(etLabel)
+            addView(etAppId)
+            addView(etName)
+            addView(makeLabel("Activity type"))
+            addView(spinnerType)
+            addView(makeLabel("User status"))
+            addView(spinnerStatus)
+            addView(etDetails)
+            addView(etState)
+            addView(etLargeKey)
+            addView(etLargeText)
+            addView(etSmallKey)
+            addView(etBtn1Label)
+            addView(etBtn1Url)
+            addView(etBtn2Label)
+            addView(etBtn2Url)
+        }
+        scroll.addView(layout)
+
+        val titleStr = when {
+            isTemplate -> "Add from Template"
+            existingIndex >= 0 -> getString(R.string.dialog_edit_preset_title)
+            else -> getString(R.string.dialog_add_preset_title)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(titleStr)
+            .setView(scroll)
+            .setPositiveButton("Save") { _, _ ->
+                val label = etLabel.text.toString().trim()
+                val appId = etAppId.text.toString().trim()
+                if (label.isEmpty() || appId.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.msg_preset_label_required), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val preset = RotationPreset(
+                    label = label,
+                    appId = appId,
+                    name = etName.text.toString().trim(),
+                    details = etDetails.text.toString().trim(),
+                    state = etState.text.toString().trim(),
+                    activityType = spinnerType.selectedItemPosition,
+                    largeImageKey = etLargeKey.text.toString().trim(),
+                    largeImageText = etLargeText.text.toString().trim(),
+                    smallImageKey = etSmallKey.text.toString().trim(),
+                    button1Label = etBtn1Label.text.toString().trim(),
+                    button1Url = etBtn1Url.text.toString().trim(),
+                    button2Label = etBtn2Label.text.toString().trim(),
+                    button2Url = etBtn2Url.text.toString().trim(),
+                    userStatus = when (spinnerStatus.selectedItemPosition) {
+                        1 -> "idle"; 2 -> "dnd"; 3 -> "invisible"; else -> "online"
+                    }
+                )
+                val presets = loadRotationPresets().toMutableList()
+                if (existingIndex >= 0 && !isTemplate) {
+                    presets[existingIndex] = preset
+                    Toast.makeText(this, getString(R.string.msg_preset_updated), Toast.LENGTH_SHORT).show()
+                } else {
+                    presets.add(preset)
+                    Toast.makeText(this, getString(R.string.msg_preset_saved), Toast.LENGTH_SHORT).show()
+                }
+                saveRotationPresets(presets)
+                refreshPresetsPage()
+            }
+            .setNegativeButton(getString(R.string.btn_no), null)
+            .show()
+    }
+
+    // ── APP ACTIVITY TRACKER ──────────────────────────────────────────────────
+
+    private fun bindAppTrackerViews() {
+        tvTrackerCurrentApp = viewAppTracker.findViewById(R.id.tv_tracker_current_app)
+        swAppActivityMode = viewAppTracker.findViewById(R.id.sw_app_activity_mode)
+        layAppTrackerSettings = viewAppTracker.findViewById(R.id.lay_app_tracker_settings)
+        spinnerTrackerInterval = viewAppTracker.findViewById(R.id.spinner_tracker_interval)
+        spinnerTrackerField = viewAppTracker.findViewById(R.id.spinner_tracker_field)
+        etTrackerAppId = viewAppTracker.findViewById(R.id.et_tracker_app_id)
+        etTrackerPrefix = viewAppTracker.findViewById(R.id.et_tracker_prefix)
+        etTrackerDetails = viewAppTracker.findViewById(R.id.et_tracker_details)
+        etTrackerState = viewAppTracker.findViewById(R.id.et_tracker_state)
+        cardTrackerPerm = viewAppTracker.findViewById(R.id.card_tracker_perm)
+
+        val btnBackTracker = viewAppTracker.findViewById<ImageView>(R.id.btn_back_app_tracker)
+        btnBackTracker.setOnClickListener { showDashboard() }
+
+        val btnGrantPerm = viewAppTracker.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_grant_tracker_perm)
+        btnGrantPerm.setOnClickListener {
+            startActivity(Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+
+        val intervalLabels = arrayOf("5 s", "10 s", "30 s", "1 min")
+        spinnerTrackerInterval.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, intervalLabels)
+
+        val fieldLabels = arrayOf("Activity Name", "Details", "State")
+        spinnerTrackerField.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, fieldLabels)
+
+        swAppActivityMode.setOnCheckedChangeListener { _, isChecked ->
+            appActivityModeEnabled = isChecked
+            layAppTrackerSettings.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (isChecked && isServiceConnected) {
+                if (rotationEnabled) {
+                    stopRotationInService()
+                    swRotation.isChecked = false
+                    rotationEnabled = false
+                    getSharedPreferences("RpcSettings", Context.MODE_PRIVATE).edit()
+                        .putBoolean("rotationEnabled", false).apply()
+                    updateRotationCard()
+                }
+                startAppActivityUpdates()
+            } else {
+                stopAppActivityUpdates()
+            }
+            saveTrackerSettings()
+            updateTrackerDashStatus()
+        }
+
+        val btnSaveTracker = viewAppTracker.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_save_tracker_settings)
+        btnSaveTracker.setOnClickListener {
+            if (appActivityModeEnabled && etTrackerAppId.text.toString().trim().isEmpty()) {
+                Toast.makeText(this, getString(R.string.msg_tracker_needs_app_id), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            saveTrackerSettings()
+            Toast.makeText(this, getString(R.string.msg_tracker_saved), Toast.LENGTH_SHORT).show()
+            if (appActivityModeEnabled && isServiceConnected) {
+                startAppActivityUpdates()
+            }
+        }
+    }
+
+    private fun updateAppTrackerPage() {
+        if (!::tvTrackerCurrentApp.isInitialized) return
+        val hasPerm = hasUsageStatsPermission()
+        cardTrackerPerm.visibility = if (hasPerm) View.GONE else View.VISIBLE
+        val appName = if (hasPerm) (getForegroundApp() ?: "—") else "Permission required"
+        tvTrackerCurrentApp.text = appName
+        swAppActivityMode.isChecked = appActivityModeEnabled
+        layAppTrackerSettings.visibility = if (appActivityModeEnabled) View.VISIBLE else View.GONE
+    }
+
+    private fun updateTrackerDashStatus() {
+        if (!::tvTrackerDashStatus.isInitialized) return
+        if (appActivityModeEnabled) {
+            val idx = if (::spinnerTrackerInterval.isInitialized) spinnerTrackerInterval.selectedItemPosition else 1
+            val labels = arrayOf("5 s", "10 s", "30 s", "1 min")
+            tvTrackerDashStatus.text = getString(R.string.tracker_status_active, labels.getOrElse(idx) { "10 s" })
+        } else {
+            tvTrackerDashStatus.text = getString(R.string.tracker_status_disabled)
+        }
+    }
+
+    private fun saveTrackerSettings() {
+        val prefs = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putBoolean("trackerEnabled", appActivityModeEnabled)
+            if (::etTrackerAppId.isInitialized) {
+                putString("trackerAppId", etTrackerAppId.text.toString().trim())
+                putInt("trackerIntervalIdx", spinnerTrackerInterval.selectedItemPosition)
+                putInt("trackerFieldIdx", spinnerTrackerField.selectedItemPosition)
+                putString("trackerPrefix", etTrackerPrefix.text.toString())
+                putString("trackerDetails", etTrackerDetails.text.toString())
+                putString("trackerState", etTrackerState.text.toString())
+            }
+            apply()
+        }
+    }
+
+    private fun loadTrackerSettings() {
+        val prefs = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+        appActivityModeEnabled = prefs.getBoolean("trackerEnabled", false)
+        if (::etTrackerAppId.isInitialized) {
+            etTrackerAppId.setText(prefs.getString("trackerAppId", ""))
+            spinnerTrackerInterval.setSelection(prefs.getInt("trackerIntervalIdx", 1))
+            spinnerTrackerField.setSelection(prefs.getInt("trackerFieldIdx", 0))
+            etTrackerPrefix.setText(prefs.getString("trackerPrefix", ""))
+            etTrackerDetails.setText(prefs.getString("trackerDetails", ""))
+            etTrackerState.setText(prefs.getString("trackerState", ""))
+            swAppActivityMode.isChecked = appActivityModeEnabled
+            layAppTrackerSettings.visibility = if (appActivityModeEnabled) View.VISIBLE else View.GONE
+        }
+        updateTrackerDashStatus()
+    }
+
+    private fun startAppActivityUpdates() {
+        stopAppActivityUpdates()
+        val prefs = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+        val idx = prefs.getInt("trackerIntervalIdx", 1).coerceIn(0, trackerIntervalValues.size - 1)
+        val intervalMs = trackerIntervalValues[idx]
+        appActivityRunnable = object : Runnable {
+            override fun run() {
+                if (!appActivityModeEnabled || !isServiceConnected) return
+                val appName = getForegroundApp() ?: return
+                if (appName != lastTrackedApp) {
+                    lastTrackedApp = appName
+                    sendAppActivityPresence(appName)
+                }
+                appActivityHandler.postDelayed(this, intervalMs)
+            }
+        }
+        appActivityHandler.post(appActivityRunnable!!)
+        AppLogger.info("App Activity Tracker started — every ${intervalMs / 1000}s")
+    }
+
+    private fun stopAppActivityUpdates() {
+        appActivityRunnable?.let { appActivityHandler.removeCallbacks(it) }
+        appActivityRunnable = null
+        lastTrackedApp = ""
+    }
+
+    private fun sendAppActivityPresence(appName: String) {
+        val prefs = getSharedPreferences("RpcSettings", Context.MODE_PRIVATE)
+        val trackerAppId = prefs.getString("trackerAppId", "") ?: ""
+        val fieldIdx = prefs.getInt("trackerFieldIdx", 0)
+        val prefix = prefs.getString("trackerPrefix", "") ?: ""
+        val fixedDetails = prefs.getString("trackerDetails", "") ?: ""
+        val fixedState = prefs.getString("trackerState", "") ?: ""
+        val displayName = prefix + appName
+
+        val (name, details, state) = when (fieldIdx) {
+            0 -> Triple(displayName, fixedDetails, fixedState)
+            1 -> Triple("", displayName, fixedState)
+            2 -> Triple("", fixedDetails, displayName)
+            else -> Triple(displayName, fixedDetails, fixedState)
+        }
+
+        val presence = PresenceData(
+            appId = trackerAppId.ifBlank { appIdEditText.text.toString().trim() },
+            name = name.ifBlank { appName },
+            details = details,
+            state = state,
+            largeImageKey = "",
+            largeImageText = "",
+            smallImageKey = "",
+            smallImageText = "",
+            activityType = 0,
+            partySize = null,
+            partyMax = null,
+            button1Label = "",
+            button1Url = "",
+            button2Label = "",
+            button2Url = "",
+            timestampStart = System.currentTimeMillis(),
+            timestampEnd = null,
+            userStatus = "online"
+        )
+        val serviceIntent = Intent(this, RpcService::class.java).apply {
+            action = RpcService.ACTION_UPDATE_PRESENCE
+            putExtra("PRESENCE_DATA", presence)
+        }
+        startService(serviceIntent)
+        AppLogger.info("App Tracker → \"$appName\"")
+    }
+
+    // ── DEVICE FOREGROUND APP ─────────────────────────────────────────────────
 
     private fun startForegroundPolling() {
-        stopForegroundPolling()
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP_MR1) return
         foregroundPollRunnable = object : Runnable {
             override fun run() {
@@ -1089,6 +1705,8 @@ class MainActivity : AppCompatActivity() {
         viewSettings.visibility = View.GONE
         viewAbout.visibility = View.GONE
         viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.GONE
     }
 
     private fun showDashboard() {
@@ -1097,6 +1715,10 @@ class MainActivity : AppCompatActivity() {
         viewSettings.visibility = View.GONE
         viewAbout.visibility = View.GONE
         viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.GONE
+        updateTrackerDashStatus()
+        updateRotationCard()
     }
 
     private fun showSettings() {
@@ -1105,6 +1727,8 @@ class MainActivity : AppCompatActivity() {
         viewSettings.visibility = View.VISIBLE
         viewAbout.visibility = View.GONE
         viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.GONE
         updateLivePreview()
     }
 
@@ -1114,6 +1738,8 @@ class MainActivity : AppCompatActivity() {
         viewSettings.visibility = View.GONE
         viewAbout.visibility = View.VISIBLE
         viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.GONE
 
         val btnBackAbout = findViewById<Button>(R.id.btn_back_about)
         val btnGithub = findViewById<Button>(R.id.btn_github)
@@ -1143,7 +1769,32 @@ class MainActivity : AppCompatActivity() {
         viewSettings.visibility = View.GONE
         viewAbout.visibility = View.GONE
         viewLogs.visibility = View.VISIBLE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.GONE
         refreshLogsView()
+    }
+
+    private fun showPresetsPage() {
+        viewLogin.visibility = View.GONE
+        viewDashboard.visibility = View.GONE
+        viewSettings.visibility = View.GONE
+        viewAbout.visibility = View.GONE
+        viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.VISIBLE
+        viewAppTracker.visibility = View.GONE
+        refreshPresetsPage()
+    }
+
+    private fun showAppTrackerPage() {
+        viewLogin.visibility = View.GONE
+        viewDashboard.visibility = View.GONE
+        viewSettings.visibility = View.GONE
+        viewAbout.visibility = View.GONE
+        viewLogs.visibility = View.GONE
+        viewPresets.visibility = View.GONE
+        viewAppTracker.visibility = View.VISIBLE
+        loadTrackerSettings()
+        updateAppTrackerPage()
     }
 
     // ── BROADCAST RECEIVER & STATUS ───────────────────────────────────────────
@@ -1183,7 +1834,11 @@ class MainActivity : AppCompatActivity() {
             particleView.setStatus(2)
             updatePresenceInfoCard()
             cardPresenceInfo.visibility = View.VISIBLE
-            if (rotationEnabled) startRotationInService()
+            if (appActivityModeEnabled) {
+                startAppActivityUpdates()
+            } else if (rotationEnabled) {
+                startRotationInService()
+            }
             startForegroundPolling()
         } else {
             val isConnecting = message.contains("Connecting", true)
@@ -1199,6 +1854,7 @@ class MainActivity : AppCompatActivity() {
                 particleView.setStatus(0)
                 cardPresenceInfo.visibility = View.GONE
                 stopRotationInService()
+                stopAppActivityUpdates()
                 stopForegroundPolling()
                 if (::tvDeviceApp.isInitialized) tvDeviceApp.visibility = View.GONE
             }

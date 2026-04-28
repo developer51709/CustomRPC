@@ -12,6 +12,12 @@ data class RotationPreset(
     val largeImageKey: String = "",
     val largeImageText: String = "",
     val smallImageKey: String = "",
+    val smallImageText: String = "",
+    val streamUrl: String = "",
+    val button1Label: String = "",
+    val button1Url: String = "",
+    val button2Label: String = "",
+    val button2Url: String = "",
     val userStatus: String = "online"
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -24,6 +30,12 @@ data class RotationPreset(
         put("largeImageKey", largeImageKey)
         put("largeImageText", largeImageText)
         put("smallImageKey", smallImageKey)
+        put("smallImageText", smallImageText)
+        put("streamUrl", streamUrl)
+        put("button1Label", button1Label)
+        put("button1Url", button1Url)
+        put("button2Label", button2Label)
+        put("button2Url", button2Url)
         put("userStatus", userStatus)
     }
 
@@ -36,15 +48,15 @@ data class RotationPreset(
         largeImageKey = largeImageKey,
         largeImageText = largeImageText,
         smallImageKey = smallImageKey,
-        smallImageText = "",
-        streamUrl = "",
+        smallImageText = smallImageText,
+        streamUrl = streamUrl,
         partySize = null,
         partyMax = null,
         partyId = null,
-        button1Label = "",
-        button1Url = "",
-        button2Label = "",
-        button2Url = "",
+        button1Label = button1Label,
+        button1Url = button1Url,
+        button2Label = button2Label,
+        button2Url = button2Url,
         userStatus = userStatus,
         timestampStart = System.currentTimeMillis(),
         timestampEnd = null
@@ -61,6 +73,12 @@ data class RotationPreset(
             largeImageKey = obj.optString("largeImageKey"),
             largeImageText = obj.optString("largeImageText"),
             smallImageKey = obj.optString("smallImageKey"),
+            smallImageText = obj.optString("smallImageText"),
+            streamUrl = obj.optString("streamUrl"),
+            button1Label = obj.optString("button1Label"),
+            button1Url = obj.optString("button1Url"),
+            button2Label = obj.optString("button2Label"),
+            button2Url = obj.optString("button2Url"),
             userStatus = obj.optString("userStatus", "online")
         )
     }

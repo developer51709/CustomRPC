@@ -254,8 +254,7 @@ class DiscordGateway(
                     put("url", presence.button2Url)
                 })
             }
-            // Only send buttons if assets are present (Discord requirement for User RPC)
-            if (buttons.length() > 0 && assets.length() > 0) {
+            if (buttons.length() > 0) {
                 put("buttons", buttons)
             }
 

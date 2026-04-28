@@ -38,14 +38,21 @@ Install on an Android device by transferring the desired APK and opening it (all
 - **Device App Tracker** — shows the currently active foreground app in the presence card when connected. Requires Usage Access permission (`PACKAGE_USAGE_STATS`). Tapping the label prompts the user to grant it if not already granted.
 
 ## Key files
-- `MainActivity.kt` — single-activity, 5 views (login, dashboard, settings, about, logs)
+- `MainActivity.kt` — single-activity, 7 views (login, dashboard, settings, about, logs, presets, app-tracker)
 - `RpcService.kt` — foreground service with rotation timer and gateway lifecycle
-- `RotationPreset.kt` — rotation preset data class with JSON serialization
+- `RotationPreset.kt` — rotation preset data class with full field set + JSON serialization
 - `AppLogger.kt` — in-memory log ring buffer with listener callbacks
 - `DiscordGateway.kt` — WebSocket gateway to Discord
-- `activity_main.xml` — all 5 views in a single FrameLayout
+- `activity_main.xml` — all 7 views in a single FrameLayout
 
 ## Recent changes (latest first)
+- **Preset Manager page (VIEW 6)**: Full-screen `/view_presets` accessible via the "Manage Presets" button on the rotation card. Contains: 5 static templates (Gaming Session, Music Break, Code Session, Movie Time, AFK) that auto-fill a new-preset dialog; a "MY PRESETS" section showing dynamically-generated cards for each saved preset with Edit and Delete buttons; an "+ Add" button for creating presets from scratch. Editing opens the same dialog pre-filled. Presets saved to SharedPreferences as JSON.
+- **App Activity Tracker page (VIEW 7)**: Full-screen `/view_app_tracker` accessible via the "Configure" button on the new dashboard compact card. Settings: App ID, update interval (5s/10s/30s/1min), "show app name as" (Activity Name / Details / State), prefix text, fixed details/state fields. When enabled, polls the foreground app and sends a presence update whenever the app changes. Mutually exclusive with Rotation Mode. Permission card shown when Usage Access is not granted.
+- **File import/export**: Export and Import buttons in the Settings → Advanced section now show a dialog ("Copy to clipboard" / "Save to file"). File ops use Android Storage Access Framework (no extra permission needed). Export JSON format upgraded to `customrpc/v2` — includes all settings plus a `rotationPresets` array. Import parses both v1 (clipboard-only) and v2 (with presets).
+- **Streaming status button fix**: Removed the `&& assets.length() > 0` condition in `DiscordGateway.kt` that prevented buttons from being sent when no images were set. Buttons now always send when label + URL are provided.
+- **RotationPreset expanded**: Added `smallImageText`, `streamUrl`, `button1Label`, `button1Url`, `button2Label`, `button2Url` fields (all defaulting to `""` for backward compatibility).
+
+## Previous changes
 - **Token copy**: Lock icon on dashboard top bar → dialog shows masked token, "Copy token" button copies full token to clipboard.
 - **Token revoke**: Same dialog has "Revoke token…" which POSTs to `POST /api/v9/auth/logout` with the user's Authorization header to permanently invalidate the token, then logs the user out.
 - **Logs page**: Log icon (top-left of dashboard) opens a scrollable, timestamped activity log (info/warn/error). `AppLogger` singleton captures service events; "Clear" button wipes entries.

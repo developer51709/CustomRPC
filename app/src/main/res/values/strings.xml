@@ -85,14 +85,24 @@
     <string name="btn_import_settings">Import</string>
     <string name="btn_reset_settings">Reset</string>
     <string name="msg_settings_exported">Settings copied to clipboard as JSON</string>
-    <string name="msg_settings_imported">Settings imported from clipboard</string>
+    <string name="msg_settings_exported_file">Settings exported to file</string>
+    <string name="msg_settings_imported">Settings imported successfully</string>
     <string name="msg_settings_reset">All settings reset to defaults</string>
     <string name="msg_clipboard_empty">Clipboard is empty</string>
     <string name="msg_invalid_json">Clipboard does not contain valid CustomRPC settings</string>
+    <string name="msg_invalid_json_file">File does not contain valid CustomRPC settings</string>
     <string name="dialog_reset_title">Reset all settings?</string>
     <string name="dialog_reset_msg">This will clear every field on this page. Your saved Discord token will not be removed.</string>
     <string name="btn_yes">Yes, reset</string>
     <string name="btn_no">Cancel</string>
+
+    <!-- Export/Import options -->
+    <string name="dialog_export_title">Export Settings</string>
+    <string name="dialog_import_title">Import Settings</string>
+    <string name="export_option_clipboard">Copy to clipboard</string>
+    <string name="export_option_file">Save to file</string>
+    <string name="import_option_clipboard">Paste from clipboard</string>
+    <string name="import_option_file">Open from file</string>
 
     <!-- About View -->
     <string name="about_version">Version 1.1 (Codename: Archangel)</string>
@@ -145,7 +155,7 @@
     <string name="rotation_status_off">Disabled — toggle to enable cycling</string>
     <string name="rotation_status_on">Active · %d preset(s) cycling</string>
     <string name="label_rotate_every">Every</string>
-    <string name="btn_manage_presets">Presets</string>
+    <string name="btn_manage_presets">Manage Presets</string>
     <string name="btn_save_as_preset">Save as Rotation Preset</string>
     <string name="dialog_presets_title">Rotation Presets</string>
     <string name="label_no_presets">No presets yet. Use \'Add Current\' below to save one.</string>
@@ -158,6 +168,45 @@
     <string name="msg_need_presets_first">Add at least 2 presets before enabling rotation</string>
     <string name="label_device_app">Device:</string>
     <string name="msg_usage_permission">Tap to grant Usage Access for device tracking</string>
+
+    <!-- Preset Manager Page -->
+    <string name="title_preset_manager">Preset Manager</string>
+    <string name="label_static_templates">STATIC TEMPLATES</string>
+    <string name="label_my_presets">MY PRESETS</string>
+    <string name="btn_add_preset">+ Add</string>
+    <string name="btn_add_template">Use Template</string>
+    <string name="btn_edit_preset">Edit</string>
+    <string name="msg_no_user_presets">No presets yet. Tap \"+ Add\" to create one,\nor use a static template above.</string>
+    <string name="dialog_add_preset_title">New Preset</string>
+    <string name="dialog_edit_preset_title">Edit Preset</string>
+    <string name="hint_preset_label">Preset label (name shown in rotation list)</string>
+    <string name="msg_preset_label_required">Please enter a preset label and App ID</string>
+    <string name="msg_preset_updated">Preset updated</string>
+
+    <!-- App Activity Tracker Page -->
+    <string name="title_app_tracker">App Activity Tracker</string>
+    <string name="label_app_tracker">App Activity Tracker</string>
+    <string name="label_app_tracker_disabled">Disabled</string>
+    <string name="btn_configure_tracker">Configure</string>
+    <string name="label_currently_detected">CURRENTLY DETECTED APP</string>
+    <string name="label_auto_update_presence">Auto-update Presence</string>
+    <string name="label_auto_update_desc">Updates Discord status with current app</string>
+    <string name="label_permission_required">PERMISSION REQUIRED</string>
+    <string name="msg_usage_access_needed">Usage Access permission is required to detect which app you\'re currently using.</string>
+    <string name="btn_grant_permission">Grant Permission</string>
+    <string name="label_update_interval">Update interval</string>
+    <string name="label_show_app_as">Show app name as</string>
+    <string name="hint_tracker_app_id">App ID for tracker presence</string>
+    <string name="hint_tracker_prefix">Prefix text (e.g. \'Playing: \')</string>
+    <string name="hint_tracker_details">Fixed details text (optional)</string>
+    <string name="hint_tracker_state">Fixed state text (optional)</string>
+    <string name="btn_save_tracker">Save Settings</string>
+    <string name="msg_tracker_saved">App Tracker settings saved</string>
+    <string name="msg_tracker_needs_app_id">Please enter an App ID for the tracker</string>
+    <string name="label_tracker_how_it_works">HOW IT WORKS</string>
+    <string name="msg_tracker_how_it_works">When enabled, your Discord presence automatically updates to show the app you\'re currently using on your phone.\n\n• Requires Usage Access permission\n• Works only while RPC service is connected\n• Overrides Rotation Mode while active\n• Updates at the selected interval</string>
+    <string name="tracker_status_active">Active — updating every %s</string>
+    <string name="tracker_status_disabled">Disabled</string>
 
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Discord RPC service channel</string>

@@ -85,7 +85,7 @@
     <string name="btn_import_settings">Impor</string>
     <string name="btn_reset_settings">Reset</string>
     <string name="msg_settings_exported">Pengaturan disalin ke clipboard sebagai JSON</string>
-    <string name="msg_settings_imported">Pengaturan diimpor dari clipboard</string>
+    <string name="msg_settings_imported">Pengaturan berhasil diimpor</string>
     <string name="msg_settings_reset">Semua pengaturan direset ke default</string>
     <string name="msg_clipboard_empty">Clipboard kosong</string>
     <string name="msg_invalid_json">Clipboard tidak berisi pengaturan CustomRPC yang valid</string>
@@ -158,6 +158,55 @@
     <string name="msg_need_presets_first">Tambahkan minimal 2 preset sebelum mengaktifkan rotasi</string>
     <string name="label_device_app">Perangkat:</string>
     <string name="msg_usage_permission">Ketuk untuk memberi izin Akses Penggunaan</string>
+
+    <!-- Export/Import options -->
+    <string name="dialog_export_title">Ekspor Pengaturan</string>
+    <string name="dialog_import_title">Impor Pengaturan</string>
+    <string name="export_option_clipboard">Salin ke clipboard</string>
+    <string name="export_option_file">Simpan ke file</string>
+    <string name="import_option_clipboard">Tempel dari clipboard</string>
+    <string name="import_option_file">Buka dari file</string>
+    <string name="msg_settings_exported_file">Pengaturan diekspor ke file</string>
+    <string name="msg_invalid_json_file">File tidak berisi pengaturan CustomRPC yang valid</string>
+
+    <!-- Preset Manager Page -->
+    <string name="title_preset_manager">Manajer Preset</string>
+    <string name="label_static_templates">TEMPLATE BAWAAN</string>
+    <string name="label_my_presets">PRESET SAYA</string>
+    <string name="btn_add_preset">+ Tambah</string>
+    <string name="btn_add_template">Gunakan Template</string>
+    <string name="btn_edit_preset">Edit</string>
+    <string name="msg_no_user_presets">Belum ada preset. Tap \"+ Tambah\" untuk membuat,\natau gunakan template bawaan di atas.</string>
+    <string name="dialog_add_preset_title">Preset Baru</string>
+    <string name="dialog_edit_preset_title">Edit Preset</string>
+    <string name="hint_preset_label">Label preset (nama dalam daftar rotasi)</string>
+    <string name="msg_preset_label_required">Mohon isi label preset dan App ID</string>
+    <string name="msg_preset_updated">Preset diperbarui</string>
+
+    <!-- App Activity Tracker Page -->
+    <string name="title_app_tracker">Pelacak Aktivitas App</string>
+    <string name="label_app_tracker">Pelacak Aktivitas App</string>
+    <string name="label_app_tracker_disabled">Nonaktif</string>
+    <string name="btn_configure_tracker">Konfigurasi</string>
+    <string name="label_currently_detected">APP YANG TERDETEKSI</string>
+    <string name="label_auto_update_presence">Perbarui Presence Otomatis</string>
+    <string name="label_auto_update_desc">Memperbarui status Discord dengan app saat ini</string>
+    <string name="label_permission_required">IZIN DIPERLUKAN</string>
+    <string name="msg_usage_access_needed">Izin Akses Penggunaan diperlukan untuk mendeteksi app yang sedang digunakan.</string>
+    <string name="btn_grant_permission">Beri Izin</string>
+    <string name="label_update_interval">Interval pembaruan</string>
+    <string name="label_show_app_as">Tampilkan nama app sebagai</string>
+    <string name="hint_tracker_app_id">App ID untuk presence tracker</string>
+    <string name="hint_tracker_prefix">Teks awalan (mis. \'Memainkan: \')</string>
+    <string name="hint_tracker_details">Teks detail tetap (opsional)</string>
+    <string name="hint_tracker_state">Teks status tetap (opsional)</string>
+    <string name="btn_save_tracker">Simpan Pengaturan</string>
+    <string name="msg_tracker_saved">Pengaturan App Tracker disimpan</string>
+    <string name="msg_tracker_needs_app_id">Mohon masukkan App ID untuk tracker</string>
+    <string name="label_tracker_how_it_works">CARA KERJA</string>
+    <string name="msg_tracker_how_it_works">Saat aktif, presence Discord Anda otomatis diperbarui untuk menampilkan app yang sedang digunakan.\n\n• Memerlukan izin Akses Penggunaan\n• Hanya bekerja saat layanan RPC terhubung\n• Menggantikan Mode Rotasi selama aktif\n• Diperbarui sesuai interval yang dipilih</string>
+    <string name="tracker_status_active">Aktif — diperbarui setiap %s</string>
+    <string name="tracker_status_disabled">Nonaktif</string>
 
     <!-- Service / Notifications -->
     <string name="notif_channel_name">Channel layanan Discord RPC</string>
